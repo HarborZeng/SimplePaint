@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Harbor Paint</title>
+    <link rel="stylesheet" href="css/paint-style.css"/>
+</head>
+<body>
+<div class="container">
+    <nav class="banner">
+
+        <a class="paint-title" href="index.html">Harbor画板</a>
+
+        <div class="function-bar">
+            <ul class="function-list">
+                <li class="paint-function" id="open-action" onclick="openSelected()">打开</li>
+                <li class="paint-function" id="save-action" onclick="saveSelected()">保存</li>
+                <li class="paint-function">
+                    <span>画笔形状</span>
+                    <ul class="submenu-list" onclick="shapeSelected()">
+                        <li class="paint-function submenu-item" id="curve-shape">曲线</li>
+                        <li class="paint-function submenu-item" id="line-shape">直线</li>
+                        <li class="paint-function submenu-item" id="circle-shape">圆/椭圆</li>
+                        <li class="paint-function submenu-item" id="rectangle-shape">矩形</li>
+                    </ul>
+                </li>
+                <li class="paint-function">
+                    <span>画笔粗细</span>
+                    <ul class="submenu-list" onclick="penTypeSelected()">
+                        <li class="paint-function submenu-item" id="very_thin-pen">很细</li>
+                        <li class="paint-function submenu-item" id="thin-pen">细</li>
+                        <li class="paint-function submenu-item" id="normal-pen">普通</li>
+                        <li class="paint-function submenu-item" id="bold-pen">粗</li>
+                        <li class="paint-function submenu-item" id="very_bold-pen">很粗</li>
+                    </ul>
+                </li>
+                <li class="paint-function">
+                    <span>画笔颜色</span>
+                    <ul class="submenu-list" onclick="penColorSelected()">
+                        <li class="paint-function submenu-item" id="blue-pen_color">蓝色</li>
+                        <li class="paint-function submenu-item" id="black-pen_color">黑色</li>
+                        <li class="paint-function submenu-item" id="purple-pen_color">紫色</li>
+                        <li class="paint-function submenu-item" id="red-pen_color">红色</li>
+                        <li class="paint-function submenu-item" id="green-pen_color">绿色</li>
+                        <li class="paint-function submenu-item" id="yellow-pen_color">黄色</li>
+                        <li class="paint-function submenu-item" id="white-pen_color">白色</li>
+                        <li class="paint-function submenu-item" id="brown-pen_color">棕色</li>
+                        <li class="paint-function submenu-item" id="pink-pen_color">粉色</li>
+                        <li class="paint-function submenu-item" id="grey-pen_color">灰色</li>
+                        <li class="paint-function submenu-item" id="customized-pen_color">自定义</li>
+                    </ul>
+                </li>
+                <li class="paint-function">
+                    <span>橡皮镲</span>
+                    <ul class="submenu-list" onclick="eraserSelected()">
+                        <li class="paint-function submenu-item" id="small-eraser">小号</li>
+                        <li class="paint-function submenu-item" id="normal-eraser">普通</li>
+                        <li class="paint-function submenu-item" id="large-eraser">大号</li>
+                        <li class="paint-function submenu-item" id="very_large-eraser">极大</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+    </nav>
+    <canvas id="myCanvas"></canvas>
+    <div>
+        <pre>
+            画图板：面向对象编程，只提交代码，截止时间11月30日
+            1、曲线、直线、圆/椭圆、矩形
+            2、画笔粗细、颜色
+            3、橡皮擦，擦除形状
+            4、矢量图保存、打开
+        </pre>
+    </div>
+    <script>
+        /**
+         * 原地调用初始化canvas和context对象
+         * @return context canvas的context对象
+         */
+        var context = (function () {
+            var myCanvas = document.getElementById('myCanvas');
+            myCanvas.width = innerWidth - 80;
+            myCanvas.height = innerHeight - 50;
+            return myCanvas.getContext('2d');
+        })();
+
+        /**
+         * 菜单对象的父类
+         * @constructor 空
+         */
+        function Menu() {
+        }
+
+        /**
+         * 给菜单对象添加原形name
+         * @type {string} name的值
+         */
+        Menu.prototype.name = 'menu';
+        /**
+         * 给菜单对象添加原形items
+         * @type {{default_item: string}}
+         * 是一个列表对象
+         */
+        Menu.prototype.items = {
+            default_item: ''
+        };
+        Menu.prototype.getCurrent = function () {
+            return this.items.default_item;
+        };
+        Menu.prototype.setCurrent = function (selection) {
+            this.items.default_item = selection;
+        };
+        Menu.prototype.getItems = function () {
+            return this.items;
+        };
+        Menu.prototype.menuItemSelected = function (selection) {
+            this.setCurrent(selection);
+        };
+        Menu.prototype.toString = function () {
+            return this.name + ' has ' + this.items;
+        };
+
+        function extend(Child, Parent) {
+            var F = function () {};
+            F.prototype = Parent.prototype;
+            Child.prototype = new F();
+            Child.prototype.constructor = Child;
+            Child.uber = Parent.prototype;
+        }
+
+        function ShapeMenu() {
+        }
+
+        extend(ShapeMenu, Menu);
+
+        ShapeMenu.prototype.name = 'shape menu';
+        ShapeMenu.prototype.items = {
+            curve: 'curve-shape',
+            line: 'line-shape',
+            circle: 'circle-shape',
+            rectangle: 'rectangle-shape',
+            default_item: 'curve-shape'
+        };
+
+
+        function PenTypeMenu() {
+        }
+
+        extend(PenTypeMenu, Menu);
+
+        PenTypeMenu.prototype.name = 'Pen Type Menu';
+        PenTypeMenu.prototype.items = {
+            veryThin: 'very_thin-pen',
+            thin: 'thin-pen',
+            normal: 'normal-pen',
+            bold: 'bold-pen',
+            veryBold: 'very_bold-pen',
+            default_item: 'normal-pen'
+        };
+
+
+        function PenColorMenu() {
+        }
+
+        extend(PenColorMenu, Menu);
+
+        PenColorMenu.prototype.name = 'Pen color Menu';
+        PenColorMenu.prototype.items = {
+            blue: 'blue-pen_color',
+            black: 'black-pen_color',
+            purple: 'purple-pen_color',
+            red: 'red-pen_color',
+            green: 'green-pen_color',
+            yellow: 'yellow-pen_color',
+            white: 'white-pen_color',
+            brown: 'brown-pen_color',
+            pink: 'pink-pen_color',
+            grey: 'grey-pen_color',
+            customized: 'customized-pen_color',
+            default_item: 'black-pen_color'
+        };
+
+
+        function EraserMenu() {
+        }
+
+        extend(EraserMenu, Menu);
+
+        EraserMenu.prototype.name = 'Eraser Menu';
+        EraserMenu.prototype.items = {
+            small: 'small-eraser',
+            normal: 'normal-eraser',
+            large: 'large-eraser',
+            veryLarge: 'very_large-eraser',
+            default_item: 'normal-eraser'
+        };
+
+
+        function openSelected() {
+
+        }
+
+        function saveSelected() {
+
+        }
+
+        function shapeSelected() {
+            var shapeID = event.target.id;
+            var shapeMenu = new ShapeMenu();
+            shapeMenu.menuItemSelected(shapeID);
+            menuSelected(shapeMenu);
+        }
+
+        function penTypeSelected() {
+            var penTypeID = event.target.id;
+            var penTypeMenu = new PenTypeMenu();
+            penTypeMenu.menuItemSelected(penTypeID);
+            menuSelected(penTypeMenu);
+        }
+
+        function penColorSelected() {
+            var penColorID = event.target.id;
+            var penColorMenu = new PenColorMenu();
+            penColorMenu.menuItemSelected(penColorID);
+            menuSelected(penColorMenu);
+        }
+
+        function eraserSelected() {
+            var eraserID = event.target.id;
+            var eraserMenu = new EraserMenu();
+            eraserMenu.menuItemSelected(eraserID);
+            menuSelected(eraserMenu);
+        }
+
+        function menuSelected(menu) {
+            var items = menu.getItems();
+            var keys = Object.keys(items);
+            clearPreviousSelection(keys, items);
+
+            var selectedID = menu.getCurrent();
+            var selection = document.getElementById(selectedID);
+            selection.style.color = '#668256';
+            selection.style.background = '#333';
+            selection.style.fontWeight = 'bold';
+        }
+
+        function clearPreviousSelection(keys, items) {
+            for (var i = 0; i < keys.length; i++) {
+                console.log(keys[i]);
+                var id = document.getElementById(items[keys[i]]);
+                id.style.color = '#B7B7B7';
+                id.style.background = '#222';
+                id.style.fontWeight = 'normal';
+            }
+        }
+
+    </script>
+</div>
+</body>
+</html>

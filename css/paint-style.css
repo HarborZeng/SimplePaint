@@ -1,0 +1,101 @@
+body {
+    margin-top: 0;
+    background: #ebebeb;
+    /*禁止用户选择文本*/
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    /*默认光标*/
+    cursor: default;
+}
+
+.container {
+    text-align: center;
+}
+
+#myCanvas {
+    border: 3px groove black;
+    background: white;
+}
+
+.banner {
+    position: relative;
+    min-height: 60px;
+    margin: 0 -8px 20px -8px;
+    background-color: #222;
+    border-color: #080808;
+}
+
+.paint-title {
+    color: #c6c6c6;
+    text-decoration: none;
+    float: left;
+    margin: 0 40px;
+    font-size: 22px;
+    line-height: 60px;
+}
+
+.paint-title:hover,
+.paint-title:focus {
+    text-decoration: none;
+    color: #f7f7f7;
+}
+
+.paint-title:active {
+    color: #f7f7f7;
+}
+
+.submenu-list,
+.function-list {
+    margin: 0;
+    padding: 0;
+}
+
+.function-list li {
+    list-style: none;
+    float: left;
+    line-height: 60px;
+    padding: 0 2.4%;
+    color: #B7B7B7;
+    text-decoration: none;
+}
+
+.paint-function {
+    color: #B7B7B7;
+    text-decoration: none;
+    background: #222;
+}
+
+.paint-function:active,
+.paint-function:hover,
+.paint-function:focus {
+    text-decoration: none !important;
+    color: #f7f7f7 !important;
+}
+
+.submenu-list li {
+    float: none;
+    font-size: 15px;
+    line-height: 32px;
+    /*padding-left: 3px;*/
+}
+
+.submenu-list {
+    display: none;
+    position: absolute;
+}
+
+.paint-function:hover .submenu-list {
+    display: block;
+    width: 7.5%;
+    margin-left: -10px;
+}
+
+.submenu-item {
+    opacity: .85;
+}
+
+.submenu-item:hover {
+    background: #444 !important;
+}
