@@ -275,17 +275,22 @@
             }
         }
 
-        var shapeMenu;
-        var penTypeMenu;
-        var penColorMenu;
-        var eraserMenu;
-
+        /**
+         * 初始化菜单的默认选择
+         */
         (function initSelection() {
             menuSelected(new ShapeMenu());
             menuSelected(new PenTypeMenu());
             menuSelected(new PenColorMenu());
             menuSelected(new EraserMenu());
-        })()
+        })();
+
+        var shapeMenu;
+        var penTypeMenu;
+        var penColorMenu;
+        var eraserMenu;
+
+
 
     </script>
 </div>
