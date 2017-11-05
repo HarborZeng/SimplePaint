@@ -280,18 +280,13 @@
         var penColorMenu;
         var eraserMenu;
 
-        function initSelection() {
+        (function initSelection() {
             menuSelected(new ShapeMenu());
             menuSelected(new PenTypeMenu());
             menuSelected(new PenColorMenu());
             menuSelected(new EraserMenu());
-        }
+        })()
 
-        function init() {
-            initSelection();
-        }
-
-        init();
     </script>
 </div>
 </body>
