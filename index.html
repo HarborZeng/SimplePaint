@@ -86,6 +86,7 @@
             return myCanvas.getContext('2d');
         })();
 
+        //↓↓↓↓↓↓↓↓↓↓Menu父类定义begins↓↓↓↓↓↓↓↓↓↓
         /**
          * 菜单对象的父类
          * @constructor 空
@@ -101,7 +102,7 @@
         /**
          * 给菜单对象添加原形items
          * @type {{default_item: string}}
-         * 是一个列表对象
+         * 是一个列表对象，代表
          */
         Menu.prototype.items = {
             default_item: ''
@@ -122,14 +123,25 @@
             return this.name + ' has ' + this.items;
         };
 
+        //↑↑↑↑↑↑↑↑↑↑↑↑Menu父类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
+
+
+        /**
+         * extend函数用来模拟继承，其能解决子类修改父类
+         * 造成的一个类只能被单链线性继承的不足之处
+         * @param Child 子类
+         * @param Parent 父类
+         */
         function extend(Child, Parent) {
-            var F = function () {};
+            var F = function () {
+            };
             F.prototype = Parent.prototype;
             Child.prototype = new F();
             Child.prototype.constructor = Child;
             Child.uber = Parent.prototype;
         }
 
+        //↓↓↓↓↓↓↓↓↓↓ShapeMenu子类定义begins↓↓↓↓↓↓↓↓↓↓
         function ShapeMenu() {
         }
 
@@ -143,8 +155,9 @@
             rectangle: 'rectangle-shape',
             default_item: 'curve-shape'
         };
+        //↑↑↑↑↑↑↑↑↑↑↑↑ShapeMenu子类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
 
-
+        //↓↓↓↓↓↓↓↓↓↓PenType子类定义begins↓↓↓↓↓↓↓↓↓↓
         function PenTypeMenu() {
         }
 
@@ -159,8 +172,9 @@
             veryBold: 'very_bold-pen',
             default_item: 'normal-pen'
         };
+        //↑↑↑↑↑↑↑↑↑↑↑↑PenTypeMenu子类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
 
-
+        //↓↓↓↓↓↓PenColor子类定义begins↓↓↓↓↓↓
         function PenColorMenu() {
         }
 
@@ -181,8 +195,9 @@
             customized: 'customized-pen_color',
             default_item: 'black-pen_color'
         };
+        //↑↑↑↑↑↑↑PenColorMenu子类定义ends↑↑↑↑↑↑↑
 
-
+        //↓↓↓↓↓↓EraserMenu子类定义begins↓↓↓↓↓↓
         function EraserMenu() {
         }
 
@@ -196,8 +211,9 @@
             veryLarge: 'very_large-eraser',
             default_item: 'normal-eraser'
         };
+        //↑↑↑↑↑↑↑↑EraserMenu子类定义ends↑↑↑↑↑↑↑↑
 
-
+        //↓↓↓↓↓↓点击事件类定义begins↓↓↓↓↓↓
         function openSelected() {
 
         }
@@ -208,31 +224,34 @@
 
         function shapeSelected() {
             var shapeID = event.target.id;
-            var shapeMenu = new ShapeMenu();
+            shapeMenu = new ShapeMenu();
             shapeMenu.menuItemSelected(shapeID);
             menuSelected(shapeMenu);
         }
 
         function penTypeSelected() {
             var penTypeID = event.target.id;
-            var penTypeMenu = new PenTypeMenu();
+            penTypeMenu = new PenTypeMenu();
             penTypeMenu.menuItemSelected(penTypeID);
             menuSelected(penTypeMenu);
         }
 
         function penColorSelected() {
             var penColorID = event.target.id;
-            var penColorMenu = new PenColorMenu();
+            penColorMenu = new PenColorMenu();
             penColorMenu.menuItemSelected(penColorID);
             menuSelected(penColorMenu);
         }
 
         function eraserSelected() {
             var eraserID = event.target.id;
-            var eraserMenu = new EraserMenu();
+            eraserMenu = new EraserMenu();
             eraserMenu.menuItemSelected(eraserID);
             menuSelected(eraserMenu);
         }
+
+        //↑↑↑↑↑↑↑↑↑点击事件类定义ends↑↑↑↑↑↑↑↑↑
+
 
         function menuSelected(menu) {
             var items = menu.getItems();
@@ -241,7 +260,7 @@
 
             var selectedID = menu.getCurrent();
             var selection = document.getElementById(selectedID);
-            selection.style.color = '#668256';
+            selection.style.color = '#548248';
             selection.style.background = '#333';
             selection.style.fontWeight = 'bold';
         }
@@ -250,12 +269,29 @@
             for (var i = 0; i < keys.length; i++) {
                 console.log(keys[i]);
                 var id = document.getElementById(items[keys[i]]);
-                id.style.color = '#B7B7B7';
+                id.style.color = '#b7b7b7';
                 id.style.background = '#222';
                 id.style.fontWeight = 'normal';
             }
         }
 
+        var shapeMenu;
+        var penTypeMenu;
+        var penColorMenu;
+        var eraserMenu;
+
+        function initSelection() {
+            menuSelected(new ShapeMenu());
+            menuSelected(new PenTypeMenu());
+            menuSelected(new PenColorMenu());
+            menuSelected(new EraserMenu());
+        }
+
+        function init() {
+            initSelection();
+        }
+
+        init();
     </script>
 </div>
 </body>
