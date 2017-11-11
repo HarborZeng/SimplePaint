@@ -5,6 +5,61 @@
     <title>Title</title>
 </head>
 <body>
-<a >HHH</a>
+<canvas id="ReferenceSample2" width=150 height=100 style="border: solid 5pt orange"> </canvas>
+
+<script>
+    var canvas = document.getElementById('ReferenceSample2');
+    var context = canvas.getContext('2d');
+    canvas.width = 2000;
+    canvas.height = 300;
+    // Text style settings (these will be part of Start A, B, and C alike, because they do not change)
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.lineWidth = 2.0;
+    context.font = '25px Arial';
+    // Settings for State A
+    var verticalGrad = context.createLinearGradient (0,0,0,200);
+    verticalGrad.addColorStop (0,'red');
+    verticalGrad.addColorStop (1,'green');
+    context.fillStyle = verticalGrad;
+    context.strokeStyle = 'yellow';
+    // Draw Figure 1
+    context.fillRect (25,25,100,150);
+    context.strokeText ("Fig 1",75,50);
+    context.strokeText ("State A", 75,125);
+    // Save State A
+    context.save();
+    // Settings for State B
+    var radGrad = context.createRadialGradient (375,100,5, 375,100,200);
+    radGrad.addColorStop (0,'orange');
+    radGrad.addColorStop (1,'yellow');
+    context.fillStyle = radGrad;
+    context.strokeStyle = 'green';
+    // Draw Figure 2
+    context.fillRect (175,25,100,150);
+    context.strokeText ("Fig 2",225,50);
+    context.strokeText ("State B",225,125);
+    // Save State B
+    context.save();
+    // Settings for State C
+    context.fillStyle = '#888888';
+    context.strokeStyle = '#EEEEEE';
+    // Draw Figure 3
+    context.fillRect (325,25,100,150);
+    context.strokeText ("Fig 3",375,50);
+    context.strokeText ("State C",375,125);
+    // Pop State C and restore State B
+    context.restore();
+    // Draw Figure 4
+    context.fillRect (475,25,100,150);
+    context.strokeText ("Fig 4",525,50);
+    context.strokeText ("State B",525,125);
+    // Pop state B and restore state A
+    context.restore();
+    // Draw Figure 5
+    context.fillRect (625,25,100,150);
+    context.strokeText ("Fig 5",675,50);
+    context.strokeText ("State A",675,125);
+</script>
 </body>
 </html>

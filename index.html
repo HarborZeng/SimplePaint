@@ -21,7 +21,8 @@
                     <ul class="submenu-list" onclick="shapeSelected()">
                         <li class="paint-function submenu-item" id="curve-shape">曲线</li>
                         <li class="paint-function submenu-item" id="line-shape">直线</li>
-                        <li class="paint-function submenu-item" id="circle-shape">圆/椭圆</li>
+                        <li class="paint-function submenu-item" id="circle-shape">圆</li>
+                        <li class="paint-function submenu-item" id="oval-shape">椭圆</li>
                         <li class="paint-function submenu-item" id="rectangle-shape">矩形</li>
                     </ul>
                 </li>
@@ -64,7 +65,7 @@
         </div>
 
     </nav>
-    <canvas id="myCanvas"></canvas>
+    <canvas id="myCanvas">Sorry, your browser doesn't support the &lt;canvas&gt;element.</canvas>
     <div>
         <pre>
             画图板：面向对象编程，只提交代码，截止时间11月30日
@@ -75,16 +76,20 @@
         </pre>
     </div>
     <script>
+        var myCanvas = (function () {
+            return document.getElementById('myCanvas');
+        })();
         /**
          * 原地调用初始化canvas和context对象
          * @return context canvas的context对象
          */
         var context = (function () {
-            var myCanvas = document.getElementById('myCanvas');
-            myCanvas.width = innerWidth - 80;
-            myCanvas.height = innerHeight - 50;
+            myCanvas.width = window.innerWidth - 80;
+            myCanvas.height = window.innerHeight - 50;
             return myCanvas.getContext('2d');
         })();
+
+
 
         //↓↓↓↓↓↓↓↓↓↓Menu父类定义begins↓↓↓↓↓↓↓↓↓↓
         /**
@@ -152,6 +157,7 @@
             curve: 'curve-shape',
             line: 'line-shape',
             circle: 'circle-shape',
+            oval: 'oval-shape',
             rectangle: 'rectangle-shape',
             default_item: 'curve-shape'
         };
@@ -267,7 +273,6 @@
 
         function clearPreviousSelection(keys, items) {
             for (var i = 0; i < keys.length; i++) {
-                console.log(keys[i]);
                 var id = document.getElementById(items[keys[i]]);
                 id.style.color = '#b7b7b7';
                 id.style.background = '#222';
@@ -275,23 +280,154 @@
             }
         }
 
-        /**
-         * 初始化菜单的默认选择
-         */
-        (function initSelection() {
-            menuSelected(new ShapeMenu());
-            menuSelected(new PenTypeMenu());
-            menuSelected(new PenColorMenu());
-            menuSelected(new EraserMenu());
-        })();
-
         var shapeMenu;
         var penTypeMenu;
         var penColorMenu;
         var eraserMenu;
 
+        /**
+         * 初始化菜单的默认选择
+         */
+        (function initSelection() {
+            shapeMenu = new ShapeMenu();
+            menuSelected(shapeMenu);
+            penTypeMenu = new PenTypeMenu();
+            menuSelected(penTypeMenu);
+            penColorMenu = new PenColorMenu();
+            menuSelected(penColorMenu);
+            eraserMenu = new EraserMenu();
+            menuSelected(eraserMenu);
+            context.imageSmoothingEnabled = true;
+            context.mozImageSmoothingEnabled = true;
+            context.webkitImageSmoothingEnabled = true;
+            context.msImageSmoothingEnabled = true;
+        })();
 
+        /*function Pen() {
+        }
 
+        Pen.prototype.name = 'Pen';
+        Pen.prototype.items = {
+            default_item: ''
+        };
+        Pen.prototype.getCurrent = function () {
+            return this.items.default_item;
+        };
+        Pen.prototype.setCurrent = function (selection) {
+            this.items.default_item = selection;
+        };
+        Pen.prototype.getItems = function () {
+            return this.items;
+        };
+        Pen.prototype.menuItemSelected = function (selection) {
+            this.setCurrent(selection);
+        };
+        Pen.prototype.toString = function () {
+            return this.name + ' has ' + this.items;
+        };
+
+        //↑↑↑↑↑↑↑↑↑↑↑↑Shape父类定义ends↑↑↑↑↑↑↑↑↑↑↑↑*/
+
+        var mouse = {
+            originalX: innerWidth / 2,
+            originalY: innerHeight / 2,
+            lastX: innerHeight / 2,
+            lastY: innerHeight / 2,
+            mouseStatus: 'not_defined',
+            mouseStatusList: {
+                down: 'down',
+                up: 'up',
+                notDefined: 'not_defined'
+            },
+            setMouseStatusDown: function () {
+                this.mouseStatus = this.mouseStatusList.down;
+            },
+            setMouseStatusUp: function () {
+                this.mouseStatus = this.mouseStatusList.up;
+            },
+            getMouseStatus: function () {
+                return this.mouseStatus;
+            }
+        };
+
+/*        window.addEventListener('mousemove', function (event) {
+            var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
+            var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
+            mouse.x = event.clientX + scrollX - myCanvas.offsetLeft;
+            mouse.y = event.clientY + scrollY - myCanvas.offsetTop;
+        });*/
+
+        var imageData;
+
+        function myCanvasMouseDown(event) {
+            //event.preventDefault();
+            if (event.button === 0) {
+                mouse.originalX = event.offsetX;
+                mouse.originalY = event.offsetY;
+                imageData = context.getImageData(0, 0, myCanvas.width, myCanvas.height);
+                mouse.setMouseStatusDown();
+            }
+        }
+
+        function myCanvasMouseMove(event) {
+            if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
+                context.clearRect(0, 0, myCanvas.width, myCanvas.height);
+                context.putImageData(imageData, 0, 0);
+                context.strokeStyle = penColorMenu.getCurrent()
+                    .substring(0, penColorMenu.getCurrent().indexOf('-'));
+                mouse.lastX = event.offsetX;
+                mouse.lastY = event.offsetY;
+                switch (shapeMenu.getCurrent()) {
+                    case shapeMenu.items.circle:
+                        context.beginPath();
+                        context.arc(mouse.originalX + (mouse.lastX - mouse.originalX) / 2,
+                            mouse.originalY + (mouse.lastY - mouse.originalY) / 2,
+                            Math.abs(mouse.lastX - mouse.originalX) / 2,
+                            0,
+                            Math.PI * 2, true);
+                        context.stroke();
+                        context.closePath();
+                        break;
+                    case shapeMenu.items.rectangle:
+                        context.strokeRect(mouse.originalX, mouse.originalY,
+                            mouse.lastX - mouse.originalX, mouse.lastY - mouse.originalY);
+                        break;
+                }
+            }
+        }
+
+        function myCanvasMouseUp(event) {
+            if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
+                //event.preventDefault();
+                context.clearRect(0, 0, myCanvas.width, myCanvas.height);
+                context.putImageData(imageData, 0, 0);
+                mouse.lastX = event.offsetX;
+                mouse.lastY = event.offsetY;
+                switch (shapeMenu.getCurrent()) {
+                    case shapeMenu.items.circle:
+                        context.beginPath();
+                        context.arc(mouse.originalX + (mouse.lastX - mouse.originalX) / 2,
+                            mouse.originalY + (mouse.lastY - mouse.originalY) / 2,
+                            Math.abs(mouse.lastX - mouse.originalX) / 2,
+                            0,
+                            Math.PI * 2, true);
+                        context.stroke();
+                        context.closePath();
+                        break;
+                    case shapeMenu.items.rectangle:
+                        context.strokeRect(mouse.originalX, mouse.originalY,
+                            mouse.lastX - mouse.originalX, mouse.lastY - mouse.originalY);
+                }
+
+                mouse.setMouseStatusUp();
+                mouse.lastX = null;
+                mouse.lastY = null;
+            }
+        }
+
+        myCanvas.addEventListener('mousedown', myCanvasMouseDown);
+        myCanvas.addEventListener('mouseup', myCanvasMouseUp);
+        myCanvas.addEventListener('mousemove', myCanvasMouseMove);
     </script>
 </div>
 </body>
