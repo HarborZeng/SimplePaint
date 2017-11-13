@@ -221,13 +221,18 @@
 
         //↓↓↓↓↓↓点击事件类定义begins↓↓↓↓↓↓
         function openSelected() {
-
+            //TODO 打开localStorage存储的文件
         }
 
         function saveSelected() {
-
+            //TODO 使用localStorage来存储当前画布上的对象
         }
 
+        /**
+         * shapeSelected是一个在html代码中onclick定义的函数，
+         * 使用事件传递的方式获取定位到事件源，将ShapeMenu对象
+         * 里面的默认值改成点击的值，值就是id
+         **/
         function shapeSelected() {
             var shapeID = event.target.id;
             shapeMenu = new ShapeMenu();
@@ -235,6 +240,11 @@
             menuSelected(shapeMenu);
         }
 
+        /**
+         * penTypeSelected是一个在html代码中onclick定义的函数，
+         * 使用事件传递的方式获取定位到事件源，将PenTypeMenu对象
+         * 里面的默认值改成点击的值，值就是id
+         **/
         function penTypeSelected() {
             var penTypeID = event.target.id;
             penTypeMenu = new PenTypeMenu();
@@ -242,6 +252,11 @@
             menuSelected(penTypeMenu);
         }
 
+        /**
+         * penColorSelected是一个在html代码中onclick定义的函数，
+         * 使用事件传递的方式获取定位到事件源，将PenColorMenu对象
+         * 里面的默认值改成点击的值，值就是id
+         **/
         function penColorSelected() {
             var penColorID = event.target.id;
             penColorMenu = new PenColorMenu();
@@ -249,6 +264,11 @@
             menuSelected(penColorMenu);
         }
 
+        /**
+         * eraserSelected是一个在html代码中onclick定义的函数，
+         * 使用事件传递的方式获取定位到事件源，将EraserMenu对象
+         * 里面的默认值改成点击的值，值就是id
+         **/
         function eraserSelected() {
             var eraserID = event.target.id;
             eraserMenu = new EraserMenu();
@@ -259,6 +279,14 @@
         //↑↑↑↑↑↑↑↑↑点击事件类定义ends↑↑↑↑↑↑↑↑↑
 
 
+        /**
+         * 该函数为shapeSelected，penTypeSelected，penColorSelected和
+         * eraserSelected函数内部的共同调用
+         *
+         * 主要作用为清除之前的选择，给新的选择加特效
+         *
+         * @param menu 点击的那个需要加特效的菜单项的母菜单
+         **/
         function menuSelected(menu) {
             var items = menu.getItems();
             var keys = Object.keys(items);
@@ -271,6 +299,13 @@
             selection.style.fontWeight = 'bold';
         }
 
+        /**
+         * 清除之前的选择
+         *
+         * @param keys 选中的那个菜单项对应的母菜单下所有的菜单项的ID组成的数组
+         *             的‘键’集合
+         * @param items 选中的那个菜单项对应的母菜单下所有的菜单项的ID组成的数组
+         **/
         function clearPreviousSelection(keys, items) {
             for (var i = 0; i < keys.length; i++) {
                 var id = document.getElementById(items[keys[i]]);
@@ -280,6 +315,9 @@
             }
         }
 
+        /**
+         * 四个全局的变量，代表四个主要的菜单对象
+         **/
         var shapeMenu;
         var penTypeMenu;
         var penColorMenu;
@@ -297,12 +335,20 @@
             menuSelected(penColorMenu);
             eraserMenu = new EraserMenu();
             menuSelected(eraserMenu);
-            context.imageSmoothingEnabled = true;
-            context.mozImageSmoothingEnabled = true;
-            context.webkitImageSmoothingEnabled = true;
-            context.msImageSmoothingEnabled = true;
         })();
 
+
+        /**
+         *Shape为所有绘制的图形的父类，存放了子类都有的变量
+         * @param originalX 记录绘制当前图形的originalX
+         * @param originalY 记录绘制当前图形的originalY
+         * @param nowX 记录绘制当前图形的nowX
+         * @param nowY 记录绘制当前图形的nowY
+         * @param context 用context保存Shape实现类的状态属性，
+         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param name 记录绘制当前图形的名字代号
+         * @constructor
+         */
         function Shape(originalX, originalY, nowX, nowY, context, name) {
             this.originalX = originalX;
             this.originalY = originalY;
@@ -314,6 +360,17 @@
 
         //↑↑↑↑↑↑↑↑↑↑↑↑Shape父类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
 
+        /**
+         * 直线对象的定义，其构造函数完全复用父类
+         * @param originalX 记录绘制当前图形的originalX
+         * @param originalY 记录绘制当前图形的originalY
+         * @param nowX 记录绘制当前图形的nowX
+         * @param nowY 记录绘制当前图形的nowY
+         * @param context 用context保存Shape实现类的状态属性，
+         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param name 记录绘制当前图形的名字代号
+         * @constructor
+         */
         function Line(originalX, originalY, nowX, nowY, context, name) {
             Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
@@ -321,15 +378,24 @@
         extend(Line, Shape);
 
         Line.prototype.draw = function () {
-            this.context.save();
             this.context.beginPath();
             this.context.moveTo(this.originalX, this.originalY);
             this.context.lineTo(this.nowX, this.nowY);
             this.context.stroke();
             this.context.closePath();
-            this.context.restore();
         };
 
+        /**
+         * 矩形对象的定义，其构造函数完全复用父类
+         * @param originalX 记录绘制当前图形的originalX
+         * @param originalY 记录绘制当前图形的originalY
+         * @param nowX 记录绘制当前图形的nowX
+         * @param nowY 记录绘制当前图形的nowY
+         * @param context 用context保存Shape实现类的状态属性，
+         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param name 记录绘制当前图形的名字代号
+         * @constructor
+         */
         function Rectangle(originalX, originalY, nowX, nowY, context, name) {
             Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
@@ -340,6 +406,17 @@
                 this.nowX - this.originalX, this.nowY - this.originalY);
         };
 
+        /**
+         * 圆形对象的定义，其构造函数完全复用父类
+         * @param originalX 记录绘制当前图形的originalX
+         * @param originalY 记录绘制当前图形的originalY
+         * @param nowX 记录绘制当前图形的nowX
+         * @param nowY 记录绘制当前图形的nowY
+         * @param context 用context保存Shape实现类的状态属性，
+         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param name 记录绘制当前图形的名字代号
+         * @constructor
+         */
         function Circle(originalX, originalY, nowX, nowY, context, name) {
             Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
@@ -362,6 +439,17 @@
             this.context.closePath();
         };
 
+        /**
+         * 曲线对象的定义，其构造函数完全复用父类
+         * @param originalX 记录绘制当前图形的originalX
+         * @param originalY 记录绘制当前图形的originalY
+         * @param nowX 记录绘制当前图形的nowX
+         * @param nowY 记录绘制当前图形的nowY
+         * @param context 用context保存Shape实现类的状态属性，
+         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param name 记录绘制当前图形的名字代号
+         * @constructor
+         */
         function Curve(originalX, originalY, nowX, nowY, context, name) {
             Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
@@ -372,6 +460,17 @@
             this.context.stroke();
         };
 
+        /**
+         * 椭圆对象的定义，其构造函数完全复用父类
+         * @param originalX 记录绘制当前图形的originalX
+         * @param originalY 记录绘制当前图形的originalY
+         * @param nowX 记录绘制当前图形的nowX
+         * @param nowY 记录绘制当前图形的nowY
+         * @param context 用context保存Shape实现类的状态属性，
+         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param name 记录绘制当前图形的名字代号
+         * @constructor
+         */
         function Oval(originalX, originalY, nowX, nowY, context, name) {
             Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
@@ -401,6 +500,11 @@
             this.context.closePath();
         };
 
+        /**
+         * 鼠标对象，使用较为广泛，属性在鼠标按下和移动的时候能被更新，
+         * 内含数种鼠标状态和getter setter
+         * @type {{originalX: number, originalY: number, nowX: number, nowY: number, mouseStatus: string, mouseStatusList: {down: string, up: string, notDefined: string}, setMouseStatusDown: mouse.setMouseStatusDown, setMouseStatusUp: mouse.setMouseStatusUp, getMouseStatus: mouse.getMouseStatus}}
+         */
         var mouse = {
             originalX: innerWidth / 2,
             originalY: innerHeight / 2,
@@ -423,9 +527,21 @@
             }
         };
 
+        /**
+         * imageData是当前canvas扒下来的一份copy
+         */
         var imageData;
+        /**
+         * imageStack是我们在undo的时候的依据，
+         * 在undo的时候，会把imageStack给pop一下，
+         * 然后遍历输出imageStack以实现undo操作
+         * @type {Array}
+         */
         var imageStack = [];
 
+        /**
+         * erase函数是html代码里面undo的onclick事件
+         */
         function erase() {
             imageStack.pop();
             context.clearRect(0, 0, myCanvas.width, myCanvas.height);
@@ -435,6 +551,10 @@
             console.log(imageStack);
         }
 
+        /**
+         * 鼠标按下的时候要执行的事情
+         * @param event 系统级的变量event
+         */
         function myCanvasMouseDown(event) {
             console.log('mouse down');
             if (event.button === 0) {
@@ -460,6 +580,7 @@
                     //do nothing
                     break;
                 case shapeMenu.items.curve:
+                    //相当于给画曲线初始化，防止画曲线出现第二笔开头连着第一笔末尾的BUG
                     context.beginPath();
                     context.moveTo(mouse.nowX, mouse.nowY);
                     break;
@@ -468,6 +589,10 @@
             }
         }
 
+        /**
+         * 具体的执行画图的Controller
+         * @param event
+         */
         function drawShape(event) {
             context.clearRect(0, 0, myCanvas.width, myCanvas.height);
             for (var i = 0; i < imageStack.length; i++) {
@@ -477,7 +602,7 @@
             mouse.nowX = event.offsetX;
             mouse.nowY = event.offsetY;
 
-            var lineColor = '#fff';
+            //先拿到当前菜单上的颜色
             if (penColorMenu.getCurrent() === penColorMenu.items.customized) {
                 //TODO
             } else {
@@ -485,7 +610,7 @@
                     .substring(0, penColorMenu.getCurrent().indexOf('-'));
             }
 
-            var lineWidth = 0;
+            //再拿到当前菜单上的画笔粗细
             switch (penTypeMenu.getCurrent()) {
                 case penTypeMenu.items.bold:
                     context.lineWidth = 15;
@@ -507,6 +632,7 @@
                         ', went to default!!!');
             }
 
+            //最后拿到菜单上选择的当前画笔画什么样的图形，并new相应对象，执行draw方法
             switch (shapeMenu.getCurrent()) {
                 case shapeMenu.items.circle:
                     var circle = new Circle(mouse.originalX, mouse.originalY,
@@ -543,6 +669,10 @@
             }
         }
 
+        /**
+         * 鼠标移动的时候会执行的函数
+         * @param event 系统级的对象
+         */
         function myCanvasMouseMove(event) {
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
                 console.log('mouse moving on down condition');
@@ -550,6 +680,11 @@
             }
         }
 
+        /**
+         * 鼠标抬起（其实应该叫手指抬起）的时候，执行的函数
+         * 处理收尾工作，imageData入imageStack栈
+         * @param event 系统级对象
+         */
         function myCanvasMouseUp(event) {
             console.log('mouse up');
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
@@ -565,6 +700,9 @@
             }
         }
 
+        /**
+         * 这三个函数是用来给myCanvas绑定时间的，三个事件详见上面代码
+         */
         myCanvas.addEventListener('mousedown', myCanvasMouseDown);
         myCanvas.addEventListener('mouseup', myCanvasMouseUp);
         myCanvas.addEventListener('mousemove', myCanvasMouseMove);
