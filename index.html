@@ -61,6 +61,7 @@
                         <li class="paint-function submenu-item" id="very_large-eraser">极大</li>
                     </ul>
                 </li>
+                <li class="paint-function" id="undo-action" onclick="erase()">undo</li>
             </ul>
         </div>
 
@@ -88,7 +89,6 @@
             myCanvas.height = window.innerHeight - 50;
             return myCanvas.getContext('2d');
         })();
-
 
 
         //↓↓↓↓↓↓↓↓↓↓Menu父类定义begins↓↓↓↓↓↓↓↓↓↓
@@ -303,36 +303,114 @@
             context.msImageSmoothingEnabled = true;
         })();
 
-        /*function Pen() {
+        function Shape() {
         }
 
-        Pen.prototype.name = 'Pen';
-        Pen.prototype.items = {
-            default_item: ''
-        };
-        Pen.prototype.getCurrent = function () {
-            return this.items.default_item;
-        };
-        Pen.prototype.setCurrent = function (selection) {
-            this.items.default_item = selection;
-        };
-        Pen.prototype.getItems = function () {
-            return this.items;
-        };
-        Pen.prototype.menuItemSelected = function (selection) {
-            this.setCurrent(selection);
-        };
-        Pen.prototype.toString = function () {
-            return this.name + ' has ' + this.items;
+        Shape.prototype.name = 'SHAPE';
+
+        Shape.prototype.draw = function () {
         };
 
-        //↑↑↑↑↑↑↑↑↑↑↑↑Shape父类定义ends↑↑↑↑↑↑↑↑↑↑↑↑*/
+        //↑↑↑↑↑↑↑↑↑↑↑↑Shape父类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
+
+        function Line() {
+        }
+
+        extend(Line, Shape);
+        Line.prototype.draw = function () {
+            context.beginPath();
+            context.moveTo(mouse.originalX, mouse.originalY);
+            context.lineTo(mouse.nowX, mouse.nowY);
+            context.stroke();
+            context.closePath();
+        };
+
+        function Rectangle() {
+        }
+
+        extend(Rectangle, Shape);
+        Rectangle.prototype.draw = function () {
+            context.strokeRect(mouse.originalX, mouse.originalY,
+                mouse.nowX - mouse.originalX, mouse.nowY - mouse.originalY);
+        };
+
+        function Circle() {
+        }
+
+        extend(Circle, Shape);
+        Circle.prototype.draw = function () {
+            var radius = Math.sqrt(
+                Math.pow(Math.abs(mouse.nowX - mouse.originalX) / 2, 2)
+                + Math.pow(Math.abs(mouse.nowY - mouse.originalY) / 2, 2)
+            );
+            var centerX = mouse.originalX
+                + (mouse.nowX - mouse.originalX) / 2;
+            var centerY = mouse.originalY
+                + (mouse.nowY - mouse.originalY) / 2;
+            context.beginPath();
+            context.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            context.stroke();
+            context.closePath();
+        };
+
+        function Curve() {
+        }
+
+        extend(Curve, Shape);
+        Curve.prototype.draw = function () {
+            /*context.beginPath();
+            if (mouse.lastX === 0 || mouse.lastY === 0) {
+                mouse.lastX = mouse.originalX;
+                mouse.lastY = mouse.originalY;
+            }
+            context.moveTo(mouse.lastX, mouse.lastY);
+            context.lineTo(mouse.nowX, mouse.nowY);
+            mouse.lastX = mouse.nowX;
+            mouse.lastY = mouse.nowY;
+            context.stroke();
+            context.closePath();*/
+            context.beginPath();
+            context.moveTo(mouse.originalX, mouse.originalY);
+            context.bezierCurveTo(mouse.originalX, mouse.originalY,
+                mouse.nowX, mouse.nowY,
+                200, 200);
+            context.stroke();
+        };
+
+        function Oval() {
+        }
+
+        extend(Oval, Shape);
+        Oval.prototype.draw = function () {
+            var centerX = mouse.originalX;
+            var centerY = mouse.originalY;
+            var height = mouse.nowY - mouse.originalY;
+            var width = mouse.nowX - mouse.originalX;
+            context.beginPath();
+            context.moveTo(centerX, centerY - height / 2);
+
+            context.bezierCurveTo(
+                centerX + width / 2, centerY - height / 2,
+                centerX + width / 2, centerY + height / 2,
+                centerX, centerY + height / 2
+            );
+            context.bezierCurveTo(
+                centerX - width / 2, centerY + height / 2,
+                centerX - width / 2, centerY - height / 2,
+                centerX, centerY - height / 2
+            );
+
+            context.stroke();
+            context.closePath();
+        };
 
         var mouse = {
             originalX: innerWidth / 2,
             originalY: innerHeight / 2,
-            lastX: innerHeight / 2,
-            lastY: innerHeight / 2,
+            nowX: innerHeight / 2,
+            nowY: innerHeight / 2,
+            lastX: 0,
+            lastY: 0,
             mouseStatus: 'not_defined',
             mouseStatusList: {
                 down: 'down',
@@ -350,78 +428,108 @@
             }
         };
 
-/*        window.addEventListener('mousemove', function (event) {
-            var scrollX = document.documentElement.scrollLeft || document.body.scrollLeft;
-            var scrollY = document.documentElement.scrollTop || document.body.scrollTop;
-            mouse.x = event.clientX + scrollX - myCanvas.offsetLeft;
-            mouse.y = event.clientY + scrollY - myCanvas.offsetTop;
-        });*/
-
         var imageData;
+        var imageStack = [];
+
+        function erase() {
+            imageStack.pop();
+            context.clearRect(0, 0, myCanvas.width, myCanvas.height);
+            for (var i = 0; i < imageStack.length; i++) {
+                context.putImageData(imageStack[i], 0, 0);
+            }
+            console.log(imageStack);
+        }
 
         function myCanvasMouseDown(event) {
-            //event.preventDefault();
+            console.log('mouse down');
             if (event.button === 0) {
                 mouse.originalX = event.offsetX;
+                mouse.nowX = event.offsetX;
                 mouse.originalY = event.offsetY;
-                imageData = context.getImageData(0, 0, myCanvas.width, myCanvas.height);
+                mouse.nowY = event.offsetY;
+                imageData = context
+                    .getImageData(0, 0, myCanvas.width, myCanvas.height);
                 mouse.setMouseStatusDown();
             }
+            console.log(mouse)
         }
 
         function myCanvasMouseMove(event) {
+            console.log('mouse moving');
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
                 context.clearRect(0, 0, myCanvas.width, myCanvas.height);
-                context.putImageData(imageData, 0, 0);
+                for (var i = 0; i < imageStack.length; i++) {
+                    context.putImageData(imageStack[i], 0, 0);
+                }
                 context.strokeStyle = penColorMenu.getCurrent()
                     .substring(0, penColorMenu.getCurrent().indexOf('-'));
-                mouse.lastX = event.offsetX;
-                mouse.lastY = event.offsetY;
+                mouse.nowX = event.offsetX;
+                mouse.nowY = event.offsetY;
                 switch (shapeMenu.getCurrent()) {
                     case shapeMenu.items.circle:
-                        context.beginPath();
-                        context.arc(mouse.originalX + (mouse.lastX - mouse.originalX) / 2,
-                            mouse.originalY + (mouse.lastY - mouse.originalY) / 2,
-                            Math.abs(mouse.lastX - mouse.originalX) / 2,
-                            0,
-                            Math.PI * 2, true);
-                        context.stroke();
-                        context.closePath();
+                        var circle = new Circle();
+                        circle.draw();
                         break;
                     case shapeMenu.items.rectangle:
-                        context.strokeRect(mouse.originalX, mouse.originalY,
-                            mouse.lastX - mouse.originalX, mouse.lastY - mouse.originalY);
+                        var rectangle = new Rectangle();
+                        rectangle.draw();
+                        break;
+                    case shapeMenu.items.line:
+                        var line = new Line();
+                        line.draw();
+                        break;
+                    case shapeMenu.items.curve:
+                        var curve = new Curve();
+                        curve.draw();
+                        break;
+                    case shapeMenu.items.oval:
+                        var oval = new Oval();
+                        oval.draw();
                         break;
                 }
             }
+            console.log(mouse)
         }
 
         function myCanvasMouseUp(event) {
+            console.log('mouse up');
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
-                //event.preventDefault();
                 context.clearRect(0, 0, myCanvas.width, myCanvas.height);
                 context.putImageData(imageData, 0, 0);
-                mouse.lastX = event.offsetX;
-                mouse.lastY = event.offsetY;
+                mouse.nowX = event.offsetX;
+                mouse.nowY = event.offsetY;
                 switch (shapeMenu.getCurrent()) {
                     case shapeMenu.items.circle:
-                        context.beginPath();
-                        context.arc(mouse.originalX + (mouse.lastX - mouse.originalX) / 2,
-                            mouse.originalY + (mouse.lastY - mouse.originalY) / 2,
-                            Math.abs(mouse.lastX - mouse.originalX) / 2,
-                            0,
-                            Math.PI * 2, true);
-                        context.stroke();
-                        context.closePath();
+                        var circle = new Circle();
+                        circle.draw();
                         break;
                     case shapeMenu.items.rectangle:
-                        context.strokeRect(mouse.originalX, mouse.originalY,
-                            mouse.lastX - mouse.originalX, mouse.lastY - mouse.originalY);
+                        var rectangle = new Rectangle();
+                        rectangle.draw();
+                        break;
+                    case shapeMenu.items.line:
+                        var line = new Line();
+                        line.draw();
+                        break;
+                    case shapeMenu.items.curve:
+                        var curve = new Curve();
+                        curve.draw();
+                        break;
+                    case shapeMenu.items.oval:
+                        var oval = new Oval();
+                        oval.draw();
+                        break;
                 }
 
+                imageData = context
+                    .getImageData(0, 0, myCanvas.width, myCanvas.height);
+                imageStack.push(imageData);
+
                 mouse.setMouseStatusUp();
-                mouse.lastX = null;
-                mouse.lastY = null;
+                mouse.nowX = null;
+                mouse.nowY = null;
+                mouse.lastX = 0;
+                mouse.lastY = 0;
             }
         }
 
