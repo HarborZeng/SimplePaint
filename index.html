@@ -358,22 +358,7 @@
 
         extend(Curve, Shape);
         Curve.prototype.draw = function () {
-            /*context.beginPath();
-            if (mouse.lastX === 0 || mouse.lastY === 0) {
-                mouse.lastX = mouse.originalX;
-                mouse.lastY = mouse.originalY;
-            }
-            context.moveTo(mouse.lastX, mouse.lastY);
             context.lineTo(mouse.nowX, mouse.nowY);
-            mouse.lastX = mouse.nowX;
-            mouse.lastY = mouse.nowY;
-            context.stroke();
-            context.closePath();*/
-            context.beginPath();
-            context.moveTo(mouse.originalX, mouse.originalY);
-            context.bezierCurveTo(mouse.originalX, mouse.originalY,
-                mouse.nowX, mouse.nowY,
-                200, 200);
             context.stroke();
         };
 
@@ -409,8 +394,6 @@
             originalY: innerHeight / 2,
             nowX: innerHeight / 2,
             nowY: innerHeight / 2,
-            lastX: 0,
-            lastY: 0,
             mouseStatus: 'not_defined',
             mouseStatusList: {
                 down: 'down',
@@ -451,12 +434,30 @@
                     .getImageData(0, 0, myCanvas.width, myCanvas.height);
                 mouse.setMouseStatusDown();
             }
-            console.log(mouse)
+            switch (shapeMenu.getCurrent()) {
+                case shapeMenu.items.circle:
+                    //do nothing
+                    break;
+                case shapeMenu.items.rectangle:
+                    //do nothing
+                    break;
+                case shapeMenu.items.line:
+                    //do nothing
+                    break;
+                case shapeMenu.items.oval:
+                    //do nothing
+                    break;
+                case shapeMenu.items.curve:
+                    context.moveTo(mouse.nowX, mouse.nowY);
+                    break;
+                default:
+                    console.warn('In myCanvasMouseDown, went to default!!!');
+            }
         }
 
         function myCanvasMouseMove(event) {
-            console.log('mouse moving');
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
+                console.log('mouse moving on down condition');
                 context.clearRect(0, 0, myCanvas.width, myCanvas.height);
                 for (var i = 0; i < imageStack.length; i++) {
                     context.putImageData(imageStack[i], 0, 0);
@@ -486,15 +487,19 @@
                         var oval = new Oval();
                         oval.draw();
                         break;
+                    default:
+                        console.warn('In myCanvasMouseMove, went to default!!!');
                 }
             }
-            console.log(mouse)
         }
 
         function myCanvasMouseUp(event) {
             console.log('mouse up');
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
                 context.clearRect(0, 0, myCanvas.width, myCanvas.height);
+//                for (var i = 0; i < imageStack.length; i++) {
+//                    context.putImageData(imageStack[i], 0, 0);
+//                }
                 context.putImageData(imageData, 0, 0);
                 mouse.nowX = event.offsetX;
                 mouse.nowY = event.offsetY;
@@ -519,17 +524,18 @@
                         var oval = new Oval();
                         oval.draw();
                         break;
+                    default:
+                        console.warn('In myCanvasMouseUp, went to default!!!');
                 }
 
                 imageData = context
                     .getImageData(0, 0, myCanvas.width, myCanvas.height);
+
                 imageStack.push(imageData);
 
                 mouse.setMouseStatusUp();
                 mouse.nowX = null;
                 mouse.nowY = null;
-                mouse.lastX = 0;
-                mouse.lastY = 0;
             }
         }
 
