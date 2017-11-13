@@ -303,56 +303,49 @@
             context.msImageSmoothingEnabled = true;
         })();
 
-        function Shape(originalX, originalY, nowX, nowY, penWidth, penColor, name) {
+        function Shape(originalX, originalY, nowX, nowY, context, name) {
             this.originalX = originalX;
             this.originalY = originalY;
             this.nowX = nowX;
             this.nowY = nowY;
-            this.penWidth = penWidth;
-            this.penColor = penColor;
-            this.shape = name;
+            this.context = context;
+            this.name = name;
         }
 
         //↑↑↑↑↑↑↑↑↑↑↑↑Shape父类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
 
-        function Line(originalX, originalY, nowX, nowY, penWidth, penColor, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, penWidth, penColor, name);
+        function Line(originalX, originalY, nowX, nowY, context, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
 
         extend(Line, Shape);
 
         Line.prototype.draw = function () {
-            context.save();
-            context.beginPath();
-            context.lineWidth = this.penWidth;
-            context.strokeStyle = this.penColor;
-            context.moveTo(this.originalX, this.originalY);
-            context.lineTo(this.nowX, this.nowY);
-            context.stroke();
-            context.closePath();
-            context.restore();
+            this.context.save();
+            this.context.beginPath();
+            this.context.moveTo(this.originalX, this.originalY);
+            this.context.lineTo(this.nowX, this.nowY);
+            this.context.stroke();
+            this.context.closePath();
+            this.context.restore();
         };
 
-        function Rectangle(originalX, originalY, nowX, nowY, penWidth, penColor, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, penWidth, penColor, name);
+        function Rectangle(originalX, originalY, nowX, nowY, context, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
 
         extend(Rectangle, Shape);
         Rectangle.prototype.draw = function () {
-            context.lineWidth = this.penWidth;
-            context.strokeStyle = this.penColor;
             context.strokeRect(this.originalX, this.originalY,
                 this.nowX - this.originalX, this.nowY - this.originalY);
         };
 
-        function Circle(originalX, originalY, nowX, nowY, penWidth, penColor, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, penWidth, penColor, name);
+        function Circle(originalX, originalY, nowX, nowY, context, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
 
         extend(Circle, Shape);
         Circle.prototype.draw = function () {
-            context.lineWidth = this.penWidth;
-            context.strokeStyle = this.penColor;
 
             var radius = Math.sqrt(
                 Math.pow(Math.abs(this.nowX - this.originalX) / 2, 2)
@@ -363,54 +356,49 @@
             var centerY = this.originalY
                 + (this.nowY - this.originalY) / 2;
 
-            context.beginPath();
-            context.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
-            context.stroke();
-            context.closePath();
+            this.context.beginPath();
+            this.context.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            this.context.stroke();
+            this.context.closePath();
         };
 
-        function Curve(originalX, originalY, nowX, nowY, penWidth, penColor, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, penWidth, penColor, name);
+        function Curve(originalX, originalY, nowX, nowY, context, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
 
         extend(Curve, Shape);
         Curve.prototype.draw = function () {
-            context.lineWidth = this.penWidth;
-            context.strokeStyle = this.penColor;
-            context.lineTo(this.nowX, this.nowY);
-            context.stroke();
+            this.context.lineTo(this.nowX, this.nowY);
+            this.context.stroke();
         };
 
-        function Oval(originalX, originalY, nowX, nowY, penWidth, penColor, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, penWidth, penColor, name);
+        function Oval(originalX, originalY, nowX, nowY, context, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
         }
 
         extend(Oval, Shape);
         Oval.prototype.draw = function () {
-            context.lineWidth = this.penWidth;
-            context.strokeStyle = this.penColor;
-
             var centerX = this.originalX;
             var centerY = this.originalY;
             var height = this.nowY - this.originalY;
             var width = this.nowX - this.originalX;
 
-            context.beginPath();
-            context.moveTo(centerX, centerY - height / 2);
+            this.context.beginPath();
+            this.context.moveTo(centerX, centerY - height / 2);
 
-            context.bezierCurveTo(
+            this.context.bezierCurveTo(
                 centerX + width / 2, centerY - height / 2,
                 centerX + width / 2, centerY + height / 2,
                 centerX, centerY + height / 2
             );
-            context.bezierCurveTo(
+            this.context.bezierCurveTo(
                 centerX - width / 2, centerY + height / 2,
                 centerX - width / 2, centerY - height / 2,
                 centerX, centerY - height / 2
             );
 
-            context.stroke();
-            context.closePath();
+            this.context.stroke();
+            this.context.closePath();
         };
 
         var mouse = {
@@ -493,26 +481,26 @@
             if (penColorMenu.getCurrent() === penColorMenu.items.customized) {
                 //TODO
             } else {
-                lineColor = penColorMenu.getCurrent()
+                context.strokeStyle = penColorMenu.getCurrent()
                     .substring(0, penColorMenu.getCurrent().indexOf('-'));
             }
 
             var lineWidth = 0;
             switch (penTypeMenu.getCurrent()) {
                 case penTypeMenu.items.bold:
-                    lineWidth = 15;
+                    context.lineWidth = 15;
                     break;
                 case penTypeMenu.items.veryBold:
-                    lineWidth = 20;
+                    context.lineWidth = 20;
                     break;
                 case penTypeMenu.items.normal:
-                    lineWidth = 10;
+                    context.lineWidth = 10;
                     break;
                 case penTypeMenu.items.veryThin:
-                    lineWidth = 1;
+                    context.lineWidth = 1;
                     break;
                 case penTypeMenu.items.thin:
-                    lineWidth = 5;
+                    context.lineWidth = 5;
                     break;
                 default:
                     console.warn('In myCanvasMouseMove choose pen type' +
@@ -523,31 +511,31 @@
                 case shapeMenu.items.circle:
                     var circle = new Circle(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        lineWidth, lineColor, 'circle');
+                        context, 'circle');
                     circle.draw();
                     break;
                 case shapeMenu.items.rectangle:
                     var rectangle = new Rectangle(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        lineWidth, lineColor, 'rectangle');
+                        context, 'rectangle');
                     rectangle.draw();
                     break;
                 case shapeMenu.items.line:
                     var line = new Line(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        lineWidth, lineColor, 'line');
+                        context, 'line');
                     line.draw();
                     break;
                 case shapeMenu.items.curve:
                     var curve = new Curve(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        lineWidth, lineColor, 'curve');
+                        context, 'curve');
                     curve.draw();
                     break;
                 case shapeMenu.items.oval:
                     var oval = new Oval(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        lineWidth, lineColor, 'oval');
+                        context, 'oval');
                     oval.draw();
                     break;
                 default:
