@@ -53,7 +53,7 @@
                     </ul>
                 </li>
                 <li class="paint-function">
-                    <span>橡皮镲</span>
+                    <span>橡皮擦</span>
                     <ul class="submenu-list" onclick="eraserSelected()">
                         <li class="paint-function submenu-item" id="small-eraser">小号</li>
                         <li class="paint-function submenu-item" id="normal-eraser">普通</li>
@@ -344,8 +344,8 @@
          * @param originalY 记录绘制当前图形的originalY
          * @param nowX 记录绘制当前图形的nowX
          * @param nowY 记录绘制当前图形的nowY
-         * @param context 用context保存Shape实现类的状态属性，
-         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param lineWidth 记录绘制当前图形的lineWidth
+         * @param lineColor 记录绘制当前图形的strokeColor
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
@@ -367,8 +367,8 @@
          * @param originalY 记录绘制当前图形的originalY
          * @param nowX 记录绘制当前图形的nowX
          * @param nowY 记录绘制当前图形的nowY
-         * @param context 用context保存Shape实现类的状态属性，
-         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param lineWidth 记录绘制当前图形的lineWidth
+         * @param lineColor 记录绘制当前图形的strokeColor
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
@@ -394,8 +394,8 @@
          * @param originalY 记录绘制当前图形的originalY
          * @param nowX 记录绘制当前图形的nowX
          * @param nowY 记录绘制当前图形的nowY
-         * @param context 用context保存Shape实现类的状态属性，
-         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param lineWidth 记录绘制当前图形的lineWidth
+         * @param lineColor 记录绘制当前图形的strokeColor
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
@@ -417,8 +417,8 @@
          * @param originalY 记录绘制当前图形的originalY
          * @param nowX 记录绘制当前图形的nowX
          * @param nowY 记录绘制当前图形的nowY
-         * @param context 用context保存Shape实现类的状态属性，
-         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param lineWidth 记录绘制当前图形的lineWidth
+         * @param lineColor 记录绘制当前图形的strokeColor
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
@@ -447,26 +447,23 @@
         };
 
         /**
-         * 曲线对象的定义，其构造函数完全复用父类
-         * @param originalX 记录绘制当前图形的originalX
-         * @param originalY 记录绘制当前图形的originalY
-         * @param nowX 记录绘制当前图形的nowX
-         * @param nowY 记录绘制当前图形的nowY
-         * @param context 用context保存Shape实现类的状态属性，
-         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
-         * @param name 记录绘制当前图形的名字代号
+         * 曲线对象的定义，曲线的微元就是直线
+         * @param elementArray 数组里面包含若干个直线
          * @constructor
          */
-        function Curve(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
+        function Curve(elementArray) {
+            this.elementArray = elementArray;
         }
 
         extend(Curve, Shape);
+
+        /**
+         * Curve的draw方法就是遍历draw elementArray里面的每一个line
+         **/
         Curve.prototype.draw = function () {
-            context.lineWidth = this.lineWidth;
-            context.strokeStyle = this.lineColor;
-            context.lineTo(this.nowX, this.nowY);
-            context.stroke();
+            for(var i = 0; i < this.elementArray.length; i++){
+                this.elementArray[i].draw();
+            }
         };
 
         /**
@@ -475,13 +472,13 @@
          * @param originalY 记录绘制当前图形的originalY
          * @param nowX 记录绘制当前图形的nowX
          * @param nowY 记录绘制当前图形的nowY
-         * @param context 用context保存Shape实现类的状态属性，
-         *                照顾到曲线在擦除时的特殊性，降低程序耦合度
+         * @param lineWidth 记录绘制当前图形的lineWidth
+         * @param lineColor 记录绘制当前图形的strokeColor
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
-        function Oval(originalX, originalY, nowX, nowY, lineWidthn, lineColor, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, lineWidthn, lineColor, name);
+        function Oval(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
         }
 
         extend(Oval, Shape);
@@ -512,6 +509,38 @@
             context.closePath();
         };
 
+
+        /**
+         * Element对象的定义，Element属于Curve的一部分，n个elements构成一个Curve
+         * @param originalX 记录绘制当前图形的originalX
+         * @param originalY 记录绘制当前图形的originalY
+         * @param nowX 记录绘制当前图形的nowX
+         * @param nowY 记录绘制当前图形的nowY
+         * @param lastX 记录绘制当前图形的上一个坐标x
+         * @param lastY 记录绘制当前图形的上一个坐标y
+         * @param lineWidth 记录绘制当前图形的lineWidth
+         * @param lineColor 记录绘制当前图形的strokeColor
+         * @param name 记录绘制当前图形的名字代号
+         * @constructor
+         */
+        function Element(originalX, originalY, nowX, nowY, lastX, lastY, lineWidth, lineColor, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
+            this.lastX = lastX;
+            this.lastY = lastY;
+        }
+
+        extend(Element, Shape);
+        Element.prototype.draw = function () {
+            //行为和Line的draw一样
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.lineColor;
+            context.beginPath();
+            context.moveTo(this.lastX, this.lastY);
+            context.lineTo(this.nowX, this.nowY);
+            context.stroke();
+            context.closePath();
+        };
+
         /**
          * 鼠标对象，使用较为广泛，属性在鼠标按下和移动的时候能被更新，
          * 内含数种鼠标状态和getter setter
@@ -520,8 +549,10 @@
         var mouse = {
             originalX: innerWidth / 2,
             originalY: innerHeight / 2,
-            nowX: innerHeight / 2,
+            nowX: innerWidth / 2,
             nowY: innerHeight / 2,
+            lastX: innerWidth / 2,
+            lastY: innerHeight / 2,
             mouseStatus: 'not_defined',
             mouseStatusList: {
                 down: 'down',
@@ -542,10 +573,6 @@
         };
 
         /**
-         * imageData是当前canvas扒下来的一份copy
-         */
-        var imageData;
-        /**
          * imageStack是我们在undo的时候的依据，
          * 在undo的时候，会把imageStack给pop一下，
          * 然后遍历输出imageStack以实现undo操作
@@ -565,6 +592,9 @@
             console.log(imageStack);
         }
 
+
+        var curveArray = [];
+
         /**
          * 鼠标按下的时候要执行的事情
          * @param event 系统级的变量event
@@ -573,12 +603,14 @@
             console.log('mouse down');
             if (event.button === 0) {
                 mouse.originalX = event.offsetX;
+                mouse.lastX = event.offsetX;
                 mouse.nowX = event.offsetX;
                 mouse.originalY = event.offsetY;
+                mouse.lastY = event.offsetY;
                 mouse.nowY = event.offsetY;
-                imageData = context
-                    .getImageData(0, 0, myCanvas.width, myCanvas.height);
                 mouse.setMouseStatusDown();
+
+                curveArray = [];
             }
 
             //先拿到当前菜单上的颜色
@@ -626,8 +658,8 @@
                     break;
                 case shapeMenu.items.curve:
                     //相当于给画曲线初始化，防止画曲线出现第二笔开头连着第一笔末尾的BUG
-                    context.beginPath();
-                    context.moveTo(mouse.nowX, mouse.nowY);
+//                    context.beginPath();
+//                    context.moveTo(mouse.nowX, mouse.nowY);
                     break;
                 default:
                     console.warn('In myCanvasMouseDown, went to default!!!');
@@ -642,6 +674,9 @@
             context.clearRect(0, 0, myCanvas.width, myCanvas.height);
             for (var i = 0; i < imageStack.length; i++) {
                 imageStack[i].draw();
+            }
+            for (var j = 0; j < curveArray.length; j++){
+                curveArray[j].draw();
             }
 
             mouse.nowX = event.offsetX;
@@ -668,10 +703,13 @@
                     line.draw();
                     break;
                 case shapeMenu.items.curve:
-                    var curve = new Curve(mouse.originalX, mouse.originalY,
-                        mouse.nowX, mouse.nowY,
+                    var element = new Element(mouse.originalX, mouse.originalY,
+                        mouse.nowX, mouse.nowY, mouse.lastX, mouse.lastY,
                         mouse.mouseWidth, mouse.mouseColor, 'curve');
-                    curve.draw();
+                    element.draw();
+                    mouse.lastX = mouse.nowX;
+                    mouse.lastY = mouse.nowY;
+                    curveArray.push(element);
                     break;
                 case shapeMenu.items.oval:
                     var oval = new Oval(mouse.originalX, mouse.originalY,
@@ -698,18 +736,14 @@
         /**
          * 鼠标抬起（其实应该叫手指抬起）的时候，执行的函数
          * 处理收尾工作，imageData入imageStack栈
-         * @param event 系统级对象
          */
-        function myCanvasMouseUp(event) {
+        function myCanvasMouseUp() {
             console.log('mouse up');
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
-                drawShape(event);
-
-                switch (shapeMenu.getCurrent()){
+                switch (shapeMenu.getCurrent()) {
                     case shapeMenu.items.curve:
-                        imageStack.push(new Curve(mouse.originalX, mouse.originalY,
-                            mouse.nowX, mouse.nowY,
-                            mouse.mouseWidth, mouse.mouseColor, 'curve'));
+                        var curve = new Curve(curveArray);
+                        imageStack.push(curve);
                         break;
                     case shapeMenu.items.line:
                         imageStack.push(new Line(mouse.originalX, mouse.originalY,
