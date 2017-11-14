@@ -402,7 +402,7 @@
 
         extend(Rectangle, Shape);
         Rectangle.prototype.draw = function () {
-            context.strokeRect(this.originalX, this.originalY,
+            this.context.strokeRect(this.originalX, this.originalY,
                 this.nowX - this.originalX, this.nowY - this.originalY);
         };
 
@@ -546,7 +546,7 @@
             imageStack.pop();
             context.clearRect(0, 0, myCanvas.width, myCanvas.height);
             for (var i = 0; i < imageStack.length; i++) {
-                context.putImageData(imageStack[i], 0, 0);
+                imageStack[i].draw();
             }
             console.log(imageStack);
         }
@@ -627,7 +627,7 @@
         function drawShape(event) {
             context.clearRect(0, 0, myCanvas.width, myCanvas.height);
             for (var i = 0; i < imageStack.length; i++) {
-                context.putImageData(imageStack[i], 0, 0);
+                imageStack[i].draw();
             }
 
             mouse.nowX = event.offsetX;
@@ -691,9 +691,35 @@
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
                 drawShape(event);
 
-                imageData = context
-                    .getImageData(0, 0, myCanvas.width, myCanvas.height);
-                imageStack.push(imageData);
+                switch (shapeMenu.getCurrent()){
+                    case shapeMenu.items.curve:
+                        imageStack.push(new Curve(mouse.originalX, mouse.originalY,
+                            mouse.nowX, mouse.nowY,
+                            context, 'curve'));
+                        break;
+                    case shapeMenu.items.line:
+                        imageStack.push(new Line(mouse.originalX, mouse.originalY,
+                            mouse.nowX, mouse.nowY,
+                            context, 'line'));
+                        break;
+                    case shapeMenu.items.circle:
+                        imageStack.push(new Circle(mouse.originalX, mouse.originalY,
+                            mouse.nowX, mouse.nowY,
+                            context, 'circle'));
+                        break;
+                    case shapeMenu.items.oval:
+                        imageStack.push(new Oval(mouse.originalX, mouse.originalY,
+                            mouse.nowX, mouse.nowY,
+                            context, 'oval'));
+                        break;
+                    case shapeMenu.items.rectangle:
+                        imageStack.push(new Rectangle(mouse.originalX, mouse.originalY,
+                            mouse.nowX, mouse.nowY,
+                            context, 'rectangle'));
+                        break;
+                }
+
+                console.log(imageStack);
 
                 mouse.setMouseStatusUp();
                 mouse.nowX = null;
