@@ -349,12 +349,13 @@
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
-        function Shape(originalX, originalY, nowX, nowY, context, name) {
+        function Shape(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
             this.originalX = originalX;
             this.originalY = originalY;
             this.nowX = nowX;
             this.nowY = nowY;
-            this.context = context;
+            this.lineWidth = lineWidth;
+            this.lineColor = lineColor;
             this.name = name;
         }
 
@@ -371,18 +372,20 @@
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
-        function Line(originalX, originalY, nowX, nowY, context, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
+        function Line(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
         }
 
         extend(Line, Shape);
 
         Line.prototype.draw = function () {
-            this.context.beginPath();
-            this.context.moveTo(this.originalX, this.originalY);
-            this.context.lineTo(this.nowX, this.nowY);
-            this.context.stroke();
-            this.context.closePath();
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.lineColor;
+            context.beginPath();
+            context.moveTo(this.originalX, this.originalY);
+            context.lineTo(this.nowX, this.nowY);
+            context.stroke();
+            context.closePath();
         };
 
         /**
@@ -396,13 +399,15 @@
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
-        function Rectangle(originalX, originalY, nowX, nowY, context, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
+        function Rectangle(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
         }
 
         extend(Rectangle, Shape);
         Rectangle.prototype.draw = function () {
-            this.context.strokeRect(this.originalX, this.originalY,
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.lineColor;
+            context.strokeRect(this.originalX, this.originalY,
                 this.nowX - this.originalX, this.nowY - this.originalY);
         };
 
@@ -417,13 +422,12 @@
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
-        function Circle(originalX, originalY, nowX, nowY, context, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
+        function Circle(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
         }
 
         extend(Circle, Shape);
         Circle.prototype.draw = function () {
-
             var radius = Math.sqrt(
                 Math.pow(Math.abs(this.nowX - this.originalX) / 2, 2)
                 + Math.pow(Math.abs(this.nowY - this.originalY) / 2, 2)
@@ -433,10 +437,13 @@
             var centerY = this.originalY
                 + (this.nowY - this.originalY) / 2;
 
-            this.context.beginPath();
-            this.context.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
-            this.context.stroke();
-            this.context.closePath();
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.lineColor;
+
+            context.beginPath();
+            context.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            context.stroke();
+            context.closePath();
         };
 
         /**
@@ -450,14 +457,16 @@
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
-        function Curve(originalX, originalY, nowX, nowY, context, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
+        function Curve(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
         }
 
         extend(Curve, Shape);
         Curve.prototype.draw = function () {
-            this.context.lineTo(this.nowX, this.nowY);
-            this.context.stroke();
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.lineColor;
+            context.lineTo(this.nowX, this.nowY);
+            context.stroke();
         };
 
         /**
@@ -471,8 +480,8 @@
          * @param name 记录绘制当前图形的名字代号
          * @constructor
          */
-        function Oval(originalX, originalY, nowX, nowY, context, name) {
-            Shape.call(this, originalX, originalY, nowX, nowY, context, name);
+        function Oval(originalX, originalY, nowX, nowY, lineWidthn, lineColor, name) {
+            Shape.call(this, originalX, originalY, nowX, nowY, lineWidthn, lineColor, name);
         }
 
         extend(Oval, Shape);
@@ -482,22 +491,25 @@
             var height = this.nowY - this.originalY;
             var width = this.nowX - this.originalX;
 
-            this.context.beginPath();
-            this.context.moveTo(centerX, centerY - height / 2);
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.lineColor;
 
-            this.context.bezierCurveTo(
+            context.beginPath();
+            context.moveTo(centerX, centerY - height / 2);
+
+            context.bezierCurveTo(
                 centerX + width / 2, centerY - height / 2,
                 centerX + width / 2, centerY + height / 2,
                 centerX, centerY + height / 2
             );
-            this.context.bezierCurveTo(
+            context.bezierCurveTo(
                 centerX - width / 2, centerY + height / 2,
                 centerX - width / 2, centerY - height / 2,
                 centerX, centerY - height / 2
             );
 
-            this.context.stroke();
-            this.context.closePath();
+            context.stroke();
+            context.closePath();
         };
 
         /**
@@ -516,6 +528,8 @@
                 up: 'up',
                 notDefined: 'not_defined'
             },
+            mouseWidth: 0,
+            mouseColor: '#fff',
             setMouseStatusDown: function () {
                 this.mouseStatus = this.mouseStatusList.down;
             },
@@ -571,26 +585,26 @@
             if (penColorMenu.getCurrent() === penColorMenu.items.customized) {
                 //TODO
             } else {
-                context.strokeStyle = penColorMenu.getCurrent()
+                mouse.mouseColor = penColorMenu.getCurrent()
                     .substring(0, penColorMenu.getCurrent().indexOf('-'));
             }
 
             //再拿到当前菜单上的画笔粗细
             switch (penTypeMenu.getCurrent()) {
                 case penTypeMenu.items.bold:
-                    context.lineWidth = 15;
+                    mouse.mouseWidth = 15;
                     break;
                 case penTypeMenu.items.veryBold:
-                    context.lineWidth = 20;
+                    mouse.mouseWidth = 20;
                     break;
                 case penTypeMenu.items.normal:
-                    context.lineWidth = 10;
+                    mouse.mouseWidth = 10;
                     break;
                 case penTypeMenu.items.veryThin:
-                    context.lineWidth = 1;
+                    mouse.mouseWidth = 1;
                     break;
                 case penTypeMenu.items.thin:
-                    context.lineWidth = 5;
+                    mouse.mouseWidth = 5;
                     break;
                 default:
                     console.warn('In myCanvasMouseMove choose pen type' +
@@ -638,31 +652,31 @@
                 case shapeMenu.items.circle:
                     var circle = new Circle(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        context, 'circle');
+                        mouse.mouseWidth, mouse.mouseColor, 'circle');
                     circle.draw();
                     break;
                 case shapeMenu.items.rectangle:
                     var rectangle = new Rectangle(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        context, 'rectangle');
+                        mouse.mouseWidth, mouse.mouseColor, 'rectangle');
                     rectangle.draw();
                     break;
                 case shapeMenu.items.line:
                     var line = new Line(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        context, 'line');
+                        mouse.mouseWidth, mouse.mouseColor, 'line');
                     line.draw();
                     break;
                 case shapeMenu.items.curve:
                     var curve = new Curve(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        context, 'curve');
+                        mouse.mouseWidth, mouse.mouseColor, 'curve');
                     curve.draw();
                     break;
                 case shapeMenu.items.oval:
                     var oval = new Oval(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        context, 'oval');
+                        mouse.mouseWidth, mouse.mouseColor, 'oval');
                     oval.draw();
                     break;
                 default:
@@ -695,27 +709,27 @@
                     case shapeMenu.items.curve:
                         imageStack.push(new Curve(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            context, 'curve'));
+                            mouse.mouseWidth, mouse.mouseColor, 'curve'));
                         break;
                     case shapeMenu.items.line:
                         imageStack.push(new Line(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            context, 'line'));
+                            mouse.mouseWidth, mouse.mouseColor, 'line'));
                         break;
                     case shapeMenu.items.circle:
                         imageStack.push(new Circle(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            context, 'circle'));
+                            mouse.mouseWidth, mouse.mouseColor, 'circle'));
                         break;
                     case shapeMenu.items.oval:
                         imageStack.push(new Oval(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            context, 'oval'));
+                            mouse.mouseWidth, mouse.mouseColor, 'oval'));
                         break;
                     case shapeMenu.items.rectangle:
                         imageStack.push(new Rectangle(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            context, 'rectangle'));
+                            mouse.mouseWidth, mouse.mouseColor, 'rectangle'));
                         break;
                 }
 
