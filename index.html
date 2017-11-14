@@ -566,6 +566,37 @@
                     .getImageData(0, 0, myCanvas.width, myCanvas.height);
                 mouse.setMouseStatusDown();
             }
+
+            //先拿到当前菜单上的颜色
+            if (penColorMenu.getCurrent() === penColorMenu.items.customized) {
+                //TODO
+            } else {
+                context.strokeStyle = penColorMenu.getCurrent()
+                    .substring(0, penColorMenu.getCurrent().indexOf('-'));
+            }
+
+            //再拿到当前菜单上的画笔粗细
+            switch (penTypeMenu.getCurrent()) {
+                case penTypeMenu.items.bold:
+                    context.lineWidth = 15;
+                    break;
+                case penTypeMenu.items.veryBold:
+                    context.lineWidth = 20;
+                    break;
+                case penTypeMenu.items.normal:
+                    context.lineWidth = 10;
+                    break;
+                case penTypeMenu.items.veryThin:
+                    context.lineWidth = 1;
+                    break;
+                case penTypeMenu.items.thin:
+                    context.lineWidth = 5;
+                    break;
+                default:
+                    console.warn('In myCanvasMouseMove choose pen type' +
+                        ', went to default!!!');
+            }
+
             switch (shapeMenu.getCurrent()) {
                 case shapeMenu.items.circle:
                     //do nothing
@@ -601,36 +632,6 @@
 
             mouse.nowX = event.offsetX;
             mouse.nowY = event.offsetY;
-
-            //先拿到当前菜单上的颜色
-            if (penColorMenu.getCurrent() === penColorMenu.items.customized) {
-                //TODO
-            } else {
-                context.strokeStyle = penColorMenu.getCurrent()
-                    .substring(0, penColorMenu.getCurrent().indexOf('-'));
-            }
-
-            //再拿到当前菜单上的画笔粗细
-            switch (penTypeMenu.getCurrent()) {
-                case penTypeMenu.items.bold:
-                    context.lineWidth = 15;
-                    break;
-                case penTypeMenu.items.veryBold:
-                    context.lineWidth = 20;
-                    break;
-                case penTypeMenu.items.normal:
-                    context.lineWidth = 10;
-                    break;
-                case penTypeMenu.items.veryThin:
-                    context.lineWidth = 1;
-                    break;
-                case penTypeMenu.items.thin:
-                    context.lineWidth = 5;
-                    break;
-                default:
-                    console.warn('In myCanvasMouseMove choose pen type' +
-                        ', went to default!!!');
-            }
 
             //最后拿到菜单上选择的当前画笔画什么样的图形，并new相应对象，执行draw方法
             switch (shapeMenu.getCurrent()) {
@@ -701,7 +702,7 @@
         }
 
         /**
-         * 这三个函数是用来给myCanvas绑定时间的，三个事件详见上面代码
+         * 这三个函数是用来给myCanvas绑定事件的，三个事件详见上面代码
          */
         myCanvas.addEventListener('mousedown', myCanvasMouseDown);
         myCanvas.addEventListener('mouseup', myCanvasMouseUp);
