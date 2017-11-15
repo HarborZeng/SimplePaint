@@ -52,14 +52,8 @@
                         <li class="paint-function submenu-item" id="customized-pen_color">自定义</li>
                     </ul>
                 </li>
-                <li class="paint-function">
+                <li class="paint-function" onclick="eraserSelected()">
                     <span>橡皮擦</span>
-                    <ul class="submenu-list" onclick="eraserSelected()">
-                        <li class="paint-function submenu-item" id="small-eraser">小号</li>
-                        <li class="paint-function submenu-item" id="normal-eraser">普通</li>
-                        <li class="paint-function submenu-item" id="large-eraser">大号</li>
-                        <li class="paint-function submenu-item" id="very_large-eraser">极大</li>
-                    </ul>
                 </li>
                 <li class="paint-function" id="undo-action" onclick="erase()">undo</li>
             </ul>
@@ -159,6 +153,7 @@
             circle: 'circle-shape',
             oval: 'oval-shape',
             rectangle: 'rectangle-shape',
+            element: 'element-shape',
             default_item: 'curve-shape'
         };
         //↑↑↑↑↑↑↑↑↑↑↑↑ShapeMenu子类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
@@ -211,11 +206,9 @@
 
         EraserMenu.prototype.name = 'Eraser Menu';
         EraserMenu.prototype.items = {
-            small: 'small-eraser',
-            normal: 'normal-eraser',
-            large: 'large-eraser',
-            veryLarge: 'very_large-eraser',
-            default_item: 'normal-eraser'
+            checked: 'checked',
+            unchecked: '',
+            default_item: ''
         };
         //↑↑↑↑↑↑↑↑EraserMenu子类定义ends↑↑↑↑↑↑↑↑
 
@@ -228,6 +221,13 @@
             //TODO 使用localStorage来存储当前画布上的对象
         }
 
+        function uncheckMenu(menu) {
+            var items = menu.getItems();
+            var keys = Object.keys(items);
+            clearPreviousSelection(keys, items);
+            menu.items.default_item = '';
+        }
+
         /**
          * shapeSelected是一个在html代码中onclick定义的函数，
          * 使用事件传递的方式获取定位到事件源，将ShapeMenu对象
@@ -238,6 +238,7 @@
             shapeMenu = new ShapeMenu();
             shapeMenu.menuItemSelected(shapeID);
             menuSelected(shapeMenu);
+            uncheckMenu(eraserMenu);
         }
 
         /**
@@ -270,10 +271,10 @@
          * 里面的默认值改成点击的值，值就是id
          **/
         function eraserSelected() {
-            var eraserID = event.target.id;
             eraserMenu = new EraserMenu();
-            eraserMenu.menuItemSelected(eraserID);
+            eraserMenu.menuItemSelected(eraserMenu.items.checked);
             menuSelected(eraserMenu);
+            uncheckMenu(shapeMenu);
         }
 
         //↑↑↑↑↑↑↑↑↑点击事件类定义ends↑↑↑↑↑↑↑↑↑
@@ -294,9 +295,11 @@
 
             var selectedID = menu.getCurrent();
             var selection = document.getElementById(selectedID);
-            selection.style.color = '#548248';
-            selection.style.background = '#333';
-            selection.style.fontWeight = 'bold';
+            if (selection !== null) {
+                selection.style.color = '#548248';
+                selection.style.background = '#333';
+                selection.style.fontWeight = 'bold';
+            }
         }
 
         /**
@@ -309,9 +312,11 @@
         function clearPreviousSelection(keys, items) {
             for (var i = 0; i < keys.length; i++) {
                 var id = document.getElementById(items[keys[i]]);
-                id.style.color = '#b7b7b7';
-                id.style.background = '#222';
-                id.style.fontWeight = 'normal';
+                if (id !== null) {
+                    id.style.color = '#b7b7b7';
+                    id.style.background = '#222';
+                    id.style.fontWeight = 'normal';
+                }
             }
         }
 
@@ -358,6 +363,10 @@
             this.lineColor = lineColor;
             this.name = name;
         }
+
+        Shape.prototype.draw = function () {
+
+        };
 
         //↑↑↑↑↑↑↑↑↑↑↑↑Shape父类定义ends↑↑↑↑↑↑↑↑↑↑↑↑
 
@@ -451,8 +460,9 @@
          * @param elementArray 数组里面包含若干个直线
          * @constructor
          */
-        function Curve(elementArray) {
-            this.elementArray = elementArray;
+        function Curve(elementArray, name) {
+            Shape.call(this, null, null, null, null, null, null, name);
+            this.elementsArray = elementArray;
         }
 
         extend(Curve, Shape);
@@ -461,8 +471,8 @@
          * Curve的draw方法就是遍历draw elementArray里面的每一个line
          **/
         Curve.prototype.draw = function () {
-            for(var i = 0; i < this.elementArray.length; i++){
-                this.elementArray[i].draw();
+            for (var i = 0; i < this.elementsArray.length; i++) {
+                this.elementsArray[i].draw();
             }
         };
 
@@ -483,6 +493,9 @@
 
         extend(Oval, Shape);
         Oval.prototype.draw = function () {
+            //实在不会了，参考了下面这篇博客
+            //http://www.alloyteam.com/2015/07/canvas-hua-tuo-yuan-di-fang-fa/
+            //的第一种方法，优点算法简单
             var centerX = this.originalX;
             var centerY = this.originalY;
             var height = this.nowY - this.originalY;
@@ -492,19 +505,11 @@
             context.strokeStyle = this.lineColor;
 
             context.beginPath();
-            context.moveTo(centerX, centerY - height / 2);
-
-            context.bezierCurveTo(
-                centerX + width / 2, centerY - height / 2,
-                centerX + width / 2, centerY + height / 2,
-                centerX, centerY + height / 2
-            );
-            context.bezierCurveTo(
-                centerX - width / 2, centerY + height / 2,
-                centerX - width / 2, centerY - height / 2,
-                centerX, centerY - height / 2
-            );
-
+            context.moveTo(centerX + width, centerY);
+            for (var i = 0; i <= 2 * Math.PI; i += 1 / 800) {
+                context.lineTo(centerX + width * Math.cos(i),
+                    centerY + height * Math.sin(i));
+            }
             context.stroke();
             context.closePath();
         };
@@ -613,99 +618,81 @@
                 curveArray = [];
             }
 
-            //先拿到当前菜单上的颜色
-            if (penColorMenu.getCurrent() === penColorMenu.items.customized) {
-                //TODO
+            if (eraserMenu.getCurrent() === eraserMenu.items.unchecked) {
+                //先拿到当前菜单上的颜色
+                if (penColorMenu.getCurrent() === penColorMenu.items.customized) {
+                    //TODO
+                } else {
+                    mouse.mouseColor = penColorMenu.getCurrent()
+                        .substring(0, penColorMenu.getCurrent().indexOf('-'));
+                }
+
+                //再拿到当前菜单上的画笔粗细
+                switch (penTypeMenu.getCurrent()) {
+                    case penTypeMenu.items.bold:
+                        mouse.mouseWidth = 15;
+                        break;
+                    case penTypeMenu.items.veryBold:
+                        mouse.mouseWidth = 20;
+                        break;
+                    case penTypeMenu.items.normal:
+                        mouse.mouseWidth = 10;
+                        break;
+                    case penTypeMenu.items.veryThin:
+                        mouse.mouseWidth = 1;
+                        break;
+                    case penTypeMenu.items.thin:
+                        mouse.mouseWidth = 5;
+                        break;
+                    default:
+                        console.warn('In myCanvasMouseMove choose pen type' +
+                            ', went to default!!!');
+                }
             } else {
-                mouse.mouseColor = penColorMenu.getCurrent()
-                    .substring(0, penColorMenu.getCurrent().indexOf('-'));
-            }
-
-            //再拿到当前菜单上的画笔粗细
-            switch (penTypeMenu.getCurrent()) {
-                case penTypeMenu.items.bold:
-                    mouse.mouseWidth = 15;
-                    break;
-                case penTypeMenu.items.veryBold:
-                    mouse.mouseWidth = 20;
-                    break;
-                case penTypeMenu.items.normal:
-                    mouse.mouseWidth = 10;
-                    break;
-                case penTypeMenu.items.veryThin:
-                    mouse.mouseWidth = 1;
-                    break;
-                case penTypeMenu.items.thin:
-                    mouse.mouseWidth = 5;
-                    break;
-                default:
-                    console.warn('In myCanvasMouseMove choose pen type' +
-                        ', went to default!!!');
-            }
-
-            switch (shapeMenu.getCurrent()) {
-                case shapeMenu.items.circle:
-                    //do nothing
-                    break;
-                case shapeMenu.items.rectangle:
-                    //do nothing
-                    break;
-                case shapeMenu.items.line:
-                    //do nothing
-                    break;
-                case shapeMenu.items.oval:
-                    //do nothing
-                    break;
-                case shapeMenu.items.curve:
-                    //相当于给画曲线初始化，防止画曲线出现第二笔开头连着第一笔末尾的BUG
-//                    context.beginPath();
-//                    context.moveTo(mouse.nowX, mouse.nowY);
-                    break;
-                default:
-                    console.warn('In myCanvasMouseDown, went to default!!!');
+                deleteShape();
             }
         }
 
         /**
          * 具体的执行画图的Controller
-         * @param event
          */
-        function drawShape(event) {
+        function drawShape() {
             context.clearRect(0, 0, myCanvas.width, myCanvas.height);
             for (var i = 0; i < imageStack.length; i++) {
                 imageStack[i].draw();
             }
-            for (var j = 0; j < curveArray.length; j++){
+            for (var j = 0; j < curveArray.length; j++) {
                 curveArray[j].draw();
             }
-
-            mouse.nowX = event.offsetX;
-            mouse.nowY = event.offsetY;
 
             //最后拿到菜单上选择的当前画笔画什么样的图形，并new相应对象，执行draw方法
             switch (shapeMenu.getCurrent()) {
                 case shapeMenu.items.circle:
                     var circle = new Circle(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        mouse.mouseWidth, mouse.mouseColor, 'circle');
+                        mouse.mouseWidth, mouse.mouseColor,
+                        shapeMenu.items.circle);
                     circle.draw();
                     break;
                 case shapeMenu.items.rectangle:
                     var rectangle = new Rectangle(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        mouse.mouseWidth, mouse.mouseColor, 'rectangle');
+                        mouse.mouseWidth, mouse.mouseColor,
+                        shapeMenu.items.rectangle);
                     rectangle.draw();
                     break;
                 case shapeMenu.items.line:
                     var line = new Line(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        mouse.mouseWidth, mouse.mouseColor, 'line');
+                        mouse.mouseWidth, mouse.mouseColor,
+                        shapeMenu.items.line);
                     line.draw();
                     break;
                 case shapeMenu.items.curve:
                     var element = new Element(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY, mouse.lastX, mouse.lastY,
-                        mouse.mouseWidth, mouse.mouseColor, 'curve');
+                        mouse.mouseWidth, mouse.mouseColor,
+                        shapeMenu.items.element);
                     element.draw();
                     mouse.lastX = mouse.nowX;
                     mouse.lastY = mouse.nowY;
@@ -714,11 +701,139 @@
                 case shapeMenu.items.oval:
                     var oval = new Oval(mouse.originalX, mouse.originalY,
                         mouse.nowX, mouse.nowY,
-                        mouse.mouseWidth, mouse.mouseColor, 'oval');
+                        mouse.mouseWidth, mouse.mouseColor,
+                        shapeMenu.items.oval);
                     oval.draw();
                     break;
                 default:
-                    console.warn('In myCanvasMouseMove, went to default!!!');
+                    console.warn('In myCanvasMouseMove, went to default!!!' +
+                        'May using eraser now');
+            }
+        }
+
+        function deleteShape() {
+            //现在是橡皮擦状态
+            if (context.getImageData(mouse.nowX, mouse.nowY, 1, 1).data[3] === 0) {
+                //橡皮擦点击的地方是透明的，不做删除检测！！！ 提高性能，避免误删
+                console.warn('橡皮擦点击的地方是透明的');
+            } else {
+                console.log(mouse.originalX, mouse.originalY);
+                var deleteSucceed = false;
+                for (var i = 0; i < imageStack.length; i++) {
+                    switch (imageStack[i].name) {
+                        case shapeMenu.items.curve:
+                            for (var j = 0; j < imageStack[i].elementsArray.length; j++) {
+                                var lastX = imageStack[i].elementsArray[j].lastX;
+                                var lastY = imageStack[i].elementsArray[j].lastY;
+                                var nowX = imageStack[i].elementsArray[j].nowX;
+                                var nowY = imageStack[i].elementsArray[j].nowY;
+                                if ((mouse.nowX >= lastX && mouse.nowX <= nowX &&
+                                        mouse.nowY >= lastY && mouse.nowY <= nowY) ||
+                                    (mouse.nowX >= nowX && mouse.nowX <= lastX &&
+                                        mouse.nowY >= nowY && mouse.nowY <= lastY) ||
+                                    (mouse.nowX <= nowX && mouse.nowX >= lastX &&
+                                        mouse.nowY >= nowY && mouse.nowY <= lastY) ||
+                                    (mouse.nowX <= lastX && mouse.nowX >= nowX &&
+                                        mouse.nowY >= lastY && mouse.nowY <= nowY)) {
+                                    imageStack.splice(i, 1);
+                                    deleteSucceed = true;
+                                    break;
+                                }
+                            }
+                            break;
+                        case shapeMenu.items.line:
+                            var originalX = imageStack[i].originalX;
+                            var originalY = imageStack[i].originalY;
+                            var nowX = imageStack[i].nowX;
+                            var nowY = imageStack[i].nowY;
+                            if ((mouse.nowX >= originalX && mouse.nowX <= nowX &&
+                                    mouse.nowY >= originalY && mouse.nowY <= nowY) ||
+                                (mouse.nowX >= nowX && mouse.nowX <= originalX &&
+                                    mouse.nowY >= nowY && mouse.nowY <= originalY) ||
+                                (mouse.nowX <= nowX && mouse.nowX >= originalX &&
+                                    mouse.nowY >= nowY && mouse.nowY <= originalY) ||
+                                (mouse.nowX <= originalX && mouse.nowX >= nowX &&
+                                    mouse.nowY >= originalY && mouse.nowY <= nowY)) {
+                                imageStack.splice(i, 1);
+                                deleteSucceed = true;
+                            }
+                            break;
+                        case shapeMenu.items.circle:
+                            var originalX = imageStack[i].originalX;
+                            var originalY = imageStack[i].originalY;
+                            var nowX = imageStack[i].nowX;
+                            var nowY = imageStack[i].nowY;
+                            var radius = Math.sqrt(
+                                Math.pow(Math.abs(nowX - originalX) / 2, 2)
+                                + Math.pow(Math.abs(nowY - originalY) / 2, 2)
+                            );
+                            var centerX = originalX
+                                + (nowX - originalX) / 2;
+                            var centerY = originalY
+                                + (nowY - originalY) / 2;
+                            //模拟了圆的方程，运用求根公式求解y点
+                            var a = 1;
+                            var b = -2 * centerY;
+                            var c = mouse.originalX * mouse.originalX -
+                                2 * centerX * mouse.originalX + centerX * centerX +
+                                centerY * centerY - radius * radius;
+                            var y1 = (-b + Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+                            var y2 = (-b - Math.sqrt(b * b - 4 * a * c)) / (2 * a);
+
+                            if ((mouse.originalY >= y1 - 3 && mouse.originalY <= y1 + 3) ||
+                                (mouse.originalY >= y2 - 3 && mouse.originalY <= y2 + 3)) {
+                                imageStack.splice(i, 1);
+                                deleteSucceed = true;
+                            }
+                            break;
+                        case shapeMenu.items.oval:
+                            var centerX = imageStack[i].originalX;
+                            var centerY = imageStack[i].originalY;
+                            var height = imageStack[i].nowY - imageStack[i].originalY;
+                            var width = imageStack[i].nowX - imageStack[i].originalX;
+
+//                            var originalX = centerX + width;
+//                            var originalY = centerY;
+
+                            for (var h = 0; h <= 2 * Math.PI; h += 1 / 800) {
+                                var nowX = centerX + width * Math.cos(h);
+                                var nowY = centerY + height * Math.sin(h);
+                                if (Math.abs(mouse.originalX - nowX) < 2 &&
+                                    Math.abs(mouse.originalY - nowY) < 2) {
+                                    imageStack.splice(i, 1);
+                                    deleteSucceed = true;
+                                    break;
+                                }
+                            }
+                            break;
+                        case shapeMenu.items.rectangle:
+                            var originalX = imageStack[i].originalX;
+                            var originalY = imageStack[i].originalY;
+                            var nowX = imageStack[i].nowX;
+                            var nowY = imageStack[i].nowY;
+
+                            if ((mouse.nowX >= originalX && mouse.nowX <= nowX &&
+                                    mouse.nowY >= originalY && mouse.nowY <= nowY) ||
+                                (mouse.nowX >= nowX && mouse.nowX <= originalX &&
+                                    mouse.nowY >= nowY && mouse.nowY <= originalY) ||
+                                (mouse.nowX <= nowX && mouse.nowX >= originalX &&
+                                    mouse.nowY >= nowY && mouse.nowY <= originalY) ||
+                                (mouse.nowX <= originalX && mouse.nowX >= nowX &&
+                                    mouse.nowY >= originalY && mouse.nowY <= nowY)) {
+                                imageStack.splice(i, 1);
+                                deleteSucceed = true;
+                            }
+                            break;
+                        default:
+                            console.log('imageStack 里面没有这个名字的对象');
+                    }
+                }
+                if (deleteSucceed) {
+                    context.clearRect(0, 0, myCanvas.width, myCanvas.height);
+                    for (var k = 0; k < imageStack.length; k++) {
+                        imageStack[k].draw();
+                    }
+                }
             }
         }
 
@@ -729,7 +844,13 @@
         function myCanvasMouseMove(event) {
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
                 console.log('mouse moving on down condition');
-                drawShape(event);
+                mouse.nowX = event.offsetX;
+                mouse.nowY = event.offsetY;
+                if (eraserMenu.getCurrent() === eraserMenu.items.unchecked) {
+                    drawShape();
+                } else {
+                    deleteShape();
+                }
             }
         }
 
@@ -742,28 +863,32 @@
             if (mouse.getMouseStatus() === mouse.mouseStatusList.down) {
                 switch (shapeMenu.getCurrent()) {
                     case shapeMenu.items.curve:
-                        var curve = new Curve(curveArray);
+                        var curve = new Curve(curveArray, shapeMenu.items.curve);
                         imageStack.push(curve);
                         break;
                     case shapeMenu.items.line:
                         imageStack.push(new Line(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            mouse.mouseWidth, mouse.mouseColor, 'line'));
+                            mouse.mouseWidth, mouse.mouseColor,
+                            shapeMenu.items.line));
                         break;
                     case shapeMenu.items.circle:
                         imageStack.push(new Circle(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            mouse.mouseWidth, mouse.mouseColor, 'circle'));
+                            mouse.mouseWidth, mouse.mouseColor,
+                            shapeMenu.items.circle));
                         break;
                     case shapeMenu.items.oval:
                         imageStack.push(new Oval(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            mouse.mouseWidth, mouse.mouseColor, 'oval'));
+                            mouse.mouseWidth, mouse.mouseColor,
+                            shapeMenu.items.oval));
                         break;
                     case shapeMenu.items.rectangle:
                         imageStack.push(new Rectangle(mouse.originalX, mouse.originalY,
                             mouse.nowX, mouse.nowY,
-                            mouse.mouseWidth, mouse.mouseColor, 'rectangle'));
+                            mouse.mouseWidth, mouse.mouseColor,
+                            shapeMenu.items.rectangle));
                         break;
                 }
 
