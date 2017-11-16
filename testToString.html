@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div>
+
+</div>
+
+<script>
+    function User(name, age) {
+        this.name = name;
+        this.age = age;
+
+        this.introduce = function () {
+            alert("I'm " + this.name + " and " + this.age);
+        };
+
+    }
+
+    User.prototype.toString = function () {
+        return "{name: " + this.name +
+            ", age: " + this.age +
+            ", introduce: {" + this.introduce + "}}";
+    };
+
+
+
+    var user = new User("zxg", 24);
+    alert(JSON.stringify(user));
+    user.introduce();
+    alert(user)
+</script>
+</body>
+</html>
