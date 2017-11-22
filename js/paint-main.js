@@ -385,18 +385,27 @@ Line.prototype.draw = function () {
  * @param lineWidth 记录绘制当前图形的lineWidth
  * @param lineColor 记录绘制当前图形的strokeColor
  * @param name 记录绘制当前图形的名字代号
+ * @param fill 记录当前图形是填充还是轮廓
  * @constructor
  */
-function Rectangle(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+function Rectangle(originalX, originalY, nowX, nowY, lineWidth, lineColor, name, fill) {
     Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
+    this.fill = fill;
 }
 
 extend(Rectangle, Shape);
 Rectangle.prototype.draw = function () {
     context.lineWidth = this.lineWidth;
     context.strokeStyle = this.lineColor;
-    context.strokeRect(this.originalX, this.originalY,
-        this.nowX - this.originalX, this.nowY - this.originalY);
+    if (this.fill) {
+        context.fillStyle = this.lineColor;
+        context.fillRect(this.originalX, this.originalY,
+            this.nowX - this.originalX, this.nowY - this.originalY);
+    } else {
+        context.strokeStyle = this.lineColor;
+        context.strokeRect(this.originalX, this.originalY,
+            this.nowX - this.originalX, this.nowY - this.originalY);
+    }
 };
 
 /**
@@ -408,10 +417,12 @@ Rectangle.prototype.draw = function () {
  * @param lineWidth 记录绘制当前图形的lineWidth
  * @param lineColor 记录绘制当前图形的strokeColor
  * @param name 记录绘制当前图形的名字代号
+ * * @param fill 记录当前图形是填充还是轮廓
  * @constructor
  */
-function Circle(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+function Circle(originalX, originalY, nowX, nowY, lineWidth, lineColor, name, fill) {
     Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
+    this.fill = fill;
 }
 
 extend(Circle, Shape);
@@ -426,11 +437,16 @@ Circle.prototype.draw = function () {
         + (this.nowY - this.originalY) / 2;
 
     context.lineWidth = this.lineWidth;
-    context.strokeStyle = this.lineColor;
 
     context.beginPath();
     context.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
-    context.stroke();
+    if (this.fill) {
+        context.fillStyle = this.lineColor;
+        context.fill();
+    } else {
+        context.strokeStyle = this.lineColor;
+        context.stroke();
+    }
     context.closePath();
 };
 
@@ -464,10 +480,12 @@ Curve.prototype.draw = function () {
  * @param lineWidth 记录绘制当前图形的lineWidth
  * @param lineColor 记录绘制当前图形的strokeColor
  * @param name 记录绘制当前图形的名字代号
+ * @param fill 记录当前图形是填充还是轮廓
  * @constructor
  */
-function Oval(originalX, originalY, nowX, nowY, lineWidth, lineColor, name) {
+function Oval(originalX, originalY, nowX, nowY, lineWidth, lineColor, name, fill) {
     Shape.call(this, originalX, originalY, nowX, nowY, lineWidth, lineColor, name);
+    this.fill = fill;
 }
 
 extend(Oval, Shape);
@@ -489,7 +507,13 @@ Oval.prototype.draw = function () {
         context.lineTo(centerX + width * Math.cos(i),
             centerY + height * Math.sin(i));
     }
-    context.stroke();
+    if (this.fill) {
+        context.fillStyle = this.lineColor;
+        context.fill();
+    } else {
+        context.strokeStyle = this.lineColor;
+        context.stroke();
+    }
     context.closePath();
 };
 
@@ -645,14 +669,16 @@ function drawShape() {
             var circle = new Circle(mouse.originalX, mouse.originalY,
                 mouse.nowX, mouse.nowY,
                 mouse.mouseWidth, mouse.mouseColor,
-                shapeMenu.items.circle);
+                shapeMenu.items.circle,
+                document.getElementById('fill-check').checked);
             circle.draw();
             break;
         case shapeMenu.items.rectangle:
             var rectangle = new Rectangle(mouse.originalX, mouse.originalY,
                 mouse.nowX, mouse.nowY,
                 mouse.mouseWidth, mouse.mouseColor,
-                shapeMenu.items.rectangle);
+                shapeMenu.items.rectangle,
+                document.getElementById('fill-check').checked);
             rectangle.draw();
             break;
         case shapeMenu.items.line:
@@ -676,7 +702,8 @@ function drawShape() {
             var oval = new Oval(mouse.originalX, mouse.originalY,
                 mouse.nowX, mouse.nowY,
                 mouse.mouseWidth, mouse.mouseColor,
-                shapeMenu.items.oval);
+                shapeMenu.items.oval,
+                document.getElementById('fill-check').checked);
             oval.draw();
             break;
         default:
@@ -850,19 +877,22 @@ function myCanvasMouseUp() {
                 imageStack.push(new Circle(mouse.originalX, mouse.originalY,
                     mouse.nowX, mouse.nowY,
                     mouse.mouseWidth, mouse.mouseColor,
-                    shapeMenu.items.circle));
+                    shapeMenu.items.circle,
+                    document.getElementById('fill-check').checked));
                 break;
             case shapeMenu.items.oval:
                 imageStack.push(new Oval(mouse.originalX, mouse.originalY,
                     mouse.nowX, mouse.nowY,
                     mouse.mouseWidth, mouse.mouseColor,
-                    shapeMenu.items.oval));
+                    shapeMenu.items.oval,
+                    document.getElementById('fill-check').checked));
                 break;
             case shapeMenu.items.rectangle:
                 imageStack.push(new Rectangle(mouse.originalX, mouse.originalY,
                     mouse.nowX, mouse.nowY,
                     mouse.mouseWidth, mouse.mouseColor,
-                    shapeMenu.items.rectangle));
+                    shapeMenu.items.rectangle,
+                    document.getElementById('fill-check').checked));
                 break;
         }
 
